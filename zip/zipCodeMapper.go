@@ -2,8 +2,6 @@ package zip
 
 import (
 	"fmt"
-	"net/http"
-	"bufio"
 )
 
 type ZipCodeMapper struct {
@@ -26,22 +24,9 @@ func (z *ZipCodeMapper) Init() {
 	}
 }
 
-func (z *ZipCodeMapper) PublishZipCode(zipCode string, format string, response http.ResponseWriter) {
-	bw := bufio.NewWriter(response)
+func (z *ZipCodeMapper) GetEntryByZipCode(zipCode string) (ZipCodeEntry, error) {
 	if entry, ok := z.ZipCodeMap[zipCode]; ok {
-		if format == "XML" {
-			response.Header().Set("Content-Type", "text/xml")
-			entry.WriteXml(bw)
-		} else if format == "JSON" {
-			response.Header().Set("Content-Type", "application/json")
-			entry.WriteJson(bw)
-		} else {
-			response.Header().Set("Content-Type", "text/plain")
-			bw.WriteString(fmt.Sprintf("{\"error\":\"Invalid Format: %s\"}", format))
-		}
-	} else {
-		response.Header().Set("Content-Type", "text/plain")
-		bw.WriteString(fmt.Sprintf("{\"error\":\"No entry found for zip: %s\"}", zipCode))
+		return entry, nil
 	}
-	bw.Flush()
+	return ZipCodeEntry{}, Throw(fmt.Sprintf("No entry found for zip %s", zipCode))
 }

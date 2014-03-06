@@ -1,7 +1,7 @@
 package zip
 
 import (
-	"io"
+	"bytes"
 	"fmt"
 	"encoding/json"
 	"encoding/xml"
@@ -23,16 +23,29 @@ type ZipCodeEntry struct {
 	Population uint32
 }
 
-func (z ZipCodeEntry) WriteXml(w io.Writer) {
-	enc := xml.NewEncoder(w)
-	if err := enc.Encode(&z); err != nil {
-		fmt.Println("Error:",err)
+func (z ZipCodeEntry) Marshal(format string) (string, error) {
+	if format == "XML" {
+		return z.ToXml(), nil
+	} else if format == "JSON" {
+		return z.ToJson(), nil
 	}
+	return "", Throw(fmt.Sprintf("Invalid format: %", format))
 }
 
-func (z ZipCodeEntry) WriteJson(w io.Writer) {
-	enc := json.NewEncoder(w)
+func (z ZipCodeEntry) ToXml() string {
+	buf := bytes.Buffer{}
+	enc := xml.NewEncoder(&buf)
 	if err := enc.Encode(&z); err != nil {
 		fmt.Println("Error:",err)
 	}
+	return buf.String()
+}
+
+func (z ZipCodeEntry) ToJson() string {
+	buf := bytes.Buffer{}
+	enc := json.NewEncoder(&buf)
+	if err := enc.Encode(&z); err != nil {
+		fmt.Println("Error:",err)
+	}
+	return buf.String()
 }

@@ -37,14 +37,22 @@ func (r ZipReader) Read (ch chan ZipCodeEntry) {
 				population, err := strconv.ParseUint(record[14], 10, 32)
 				latitude, err := strconv.ParseFloat(record[9], 64)
 				longitude, err := strconv.ParseFloat(record[10], 64)
+				acceptableCities := make([] string, 0)
+				unacceptableCities := make([] string, 0)
+				if len(record[3]) > 0 {
+					acceptableCities = strings.Split(record[3], ", ")
+				}
+				if len(record[4]) > 0 {
+					unacceptableCities = strings.Split(record[4], ", ")
+				}
 				if err != nil {
 					population = 0
 				}
 				ch <- ZipCodeEntry { record[0], 	// Zip Code
 					record[1],			// Type
 					record[2],			// City
-					strings.Split(record[3], ", "),	// Acceptable Cities
-					strings.Split(record[4], ", "),	// Unacceptable Cities
+					acceptableCities,		// Acceptable Cities
+					unacceptableCities,		// Unacceptable Cities
 					record[6],			// County
 					record[5],			// State
 					record[12],			// Country
