@@ -13,11 +13,11 @@ func Root(response http.ResponseWriter, request *http.Request) {
 
 func main() {
 	r := zip.ZipReader{"./resources/us_zip_code_database.csv"}
-	ch := make(chan []string)
+	ch := make(chan zip.ZipCodeEntry)
 
 	go r.Read(ch)
 	for i := range ch {
-		fmt.Println(i)
+		i.WriteJson(os.Stdout)
 	}
 
 	http.HandleFunc("/", Root)
