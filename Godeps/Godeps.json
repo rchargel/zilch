@@ -1,0 +1,5 @@
+{
+	"ImportPath": "github.com/rchargel/zilch",
+	"GoVersion": "go1.2.1",
+	"Deps": []
+}
