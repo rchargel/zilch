@@ -4,6 +4,7 @@ import (
 	"io"
 	"fmt"
 	"encoding/json"
+	"encoding/xml"
 )
 
 type ZipCodeEntry struct {
@@ -20,6 +21,13 @@ type ZipCodeEntry struct {
 	Latitude float64
 	Longitude float64
 	Population uint32
+}
+
+func (z ZipCodeEntry) WriteXml(w io.Writer) {
+	enc := xml.NewEncoder(w)
+	if err := enc.Encode(&z); err != nil {
+		fmt.Println("Error:",err)
+	}
 }
 
 func (z ZipCodeEntry) WriteJson(w io.Writer) {
