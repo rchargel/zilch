@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"github.com/rchargel/zilch/zip"
 )
 
 func Root(response http.ResponseWriter, request *http.Request) {
@@ -11,6 +12,14 @@ func Root(response http.ResponseWriter, request *http.Request) {
 }
 
 func main() {
+	r := zip.ZipReader{"./resources/us_zip_code_database.csv"}
+	ch := make(chan []string)
+
+	go r.Read(ch)
+	for i := range ch {
+		fmt.Println(i)
+	}
+
 	http.HandleFunc("/", Root)
 	port := os.Getenv("PORT")
 	fmt.Println("listening on port", port, "...")
