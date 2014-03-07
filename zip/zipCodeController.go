@@ -100,13 +100,29 @@ func (c ZipCodeController) lookupZipCode(ctx *web.Context, request string) {
 	WriteResponse(ctx, content, req.GetFormat())
 }
 
+func (c ZipCodeController) lookupAreaCode(ctx *web.Context, request string) {
+	req := UrlRequest(request)
+	entries, err := c.zipCodeMapper.GetEntriesByAreaCode(req.GetValue())
+	if err != nil {
+		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
+		return
+	}
+	content, err := MarshalEntries(entries, req.GetFormat())
+	if err != nil {
+		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
+		return
+	}
+	WriteResponse(ctx, content, req.GetFormat())
+}
+
 func (c ZipCodeController) root(ctx *web.Context) {
 	ctx.WriteString("Welcome to Zilch!")
 }
 
 func (c ZipCodeController) Start(port string) {
 	web.Get("/", c.root)
-	web.Get("/lookup/(.*)", c.lookupZipCode)
+	web.Get("/lookup/zip/(.*)", c.lookupZipCode)
+	web.Get("/lookup/areaCode/(.*)", c.lookupAreaCode)
 
 	fmt.Println("Listening on port:", port)
 	web.Run("0.0.0.0:" + port)
