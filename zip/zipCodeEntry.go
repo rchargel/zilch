@@ -3,6 +3,7 @@ package zip
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"encoding/json"
 )
 
@@ -36,20 +37,27 @@ func MarshalEntries(entries []ZipCodeEntry, format string) (string, error) {
 
 func EntriesToXml(entries []ZipCodeEntry) string {
 	buf := bytes.Buffer{}
+	buf.WriteString("<Response>")
+	buf.WriteString("<Total>"+fmt.Sprintf("%v", len(entries))+"</Total>")
 	buf.WriteString("<ZipCodeEntries>")
 	for _, entry := range entries {
 		buf.WriteString(entry.ToXml())
 	}
 	buf.WriteString("</ZipCodeEntries>")
+	buf.WriteString("</Response>")
 	return buf.String()
 }
 
 func EntriesToJson(entries []ZipCodeEntry) string {
 	buf := bytes.Buffer{}
+	buf.WriteString("{\"Total\":")
+	buf.WriteString(fmt.Sprintf("%v",len(entries)))
+	buf.WriteString(",\"ZipCodeEntries\":")
 	enc := json.NewEncoder(&buf)
 	if err := enc.Encode(&entries); err != nil {
 		fmt.Println("Error:", err)
 	}
+	buf.WriteString("}")
 	return buf.String()
 }
 
@@ -67,11 +75,11 @@ func (z ZipCodeEntry) ToXml() string {
 	buf.WriteString("<ZipCodeEntry>")
 	buf.WriteString("<ZipCode>"+z.ZipCode+"</ZipCode>")
 	buf.WriteString("<Type>"+z.Type+"</Type>")
-	buf.WriteString("<City>"+z.City+"</City>")
+	buf.WriteString("<City>"+strtoxml(z.City)+"</City>")
 	if len(z.AcceptableCities) > 0 {
 		buf.WriteString("<AcceptableCities>")
 		for _, city := range z.AcceptableCities {
-			buf.WriteString("<City>"+city+"</City>")
+			buf.WriteString("<City>"+strtoxml(city)+"</City>")
 		}
 		buf.WriteString("</AcceptableCities>")
 	} else {
@@ -80,16 +88,16 @@ func (z ZipCodeEntry) ToXml() string {
 	if len(z.UnacceptableCities) > 0 {
 		buf.WriteString("<UnacceptableCities>")
 		for _, city := range z.UnacceptableCities {
-			buf.WriteString("<City>"+city+"</City>")
+			buf.WriteString("<City>"+strtoxml(city)+"</City>")
 		}
 		buf.WriteString("</UnacceptableCities>")
 	} else {
 		buf.WriteString("<UnacceptableCities/>")
 	}
-	buf.WriteString("<County>"+z.County+"</County>")
+	buf.WriteString("<County>"+strtoxml(z.County)+"</County>")
 	buf.WriteString("<State>"+z.State+"</State>")
-	buf.WriteString("<Country>"+z.Country+"</Country>")
-	buf.WriteString("<TimeZone>"+z.TimeZone+"</TimeZone>")
+	buf.WriteString("<Country>"+strtoxml(z.Country)+"</Country>")
+	buf.WriteString("<TimeZone>"+strtoxml(z.TimeZone)+"</TimeZone>")
 	if len(z.AreaCodes) > 0 {
 		buf.WriteString("<AreaCodes>")
 		for _, areaCode := range z.AreaCodes {
@@ -104,6 +112,13 @@ func (z ZipCodeEntry) ToXml() string {
 	buf.WriteString("<Population>"+fmt.Sprintf("%v",z.Population)+"</Population>")
 	buf.WriteString("</ZipCodeEntry>")
 	return buf.String()
+}
+
+func strtoxml(text string) string {
+	if strings.Index(text, "&") >= 0 {
+		return "<![CDATA[" + text + "]]>"
+	}
+	return text
 }
 
 func (z ZipCodeEntry) ToJson() string {
