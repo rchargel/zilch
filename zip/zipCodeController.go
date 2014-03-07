@@ -87,33 +87,43 @@ func(r UrlRequest) GetFormat() string {
 
 func (c ZipCodeController) lookupZipCode(ctx *web.Context, request string) {
 	req := UrlRequest(request)
-	entry, err := c.zipCodeMapper.GetEntryByZipCode(req.GetValue())
-	if err != nil {
-		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
-		return
-	}
-	content, err := entry.Marshal(req.GetFormat())
-	if err != nil {
-		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
-		return
-	}
-	WriteResponse(ctx, content, req.GetFormat())
+	q := make(map[string]string)
+	q["ZipCode"] = req.GetValue()
+	c.query(ctx, q, req.GetFormat())
 }
 
 func (c ZipCodeController) lookupAreaCode(ctx *web.Context, request string) {
 	req := UrlRequest(request)
-	entries, err := c.zipCodeMapper.GetEntriesByAreaCode(req.GetValue())
-	if err != nil {
-		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
-		return
-	}
-	content, err := MarshalEntries(entries, req.GetFormat())
-	if err != nil {
-		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
-		return
-	}
-	WriteResponse(ctx, content, req.GetFormat())
+	q := make(map[string]string)
+	q["AreaCode"] = req.GetValue()
+	c.query(ctx, q, req.GetFormat())
 }
+
+func (c ZipCodeController) queryReq(ctx *web.Context, format string) {
+	p := make(map[string]string)
+	for k, _ := range ctx.Request.Form {
+		p[k] = ctx.Request.FormValue(k)
+	}
+	c.query(ctx, p, format)
+}
+
+func (c ZipCodeController) query(ctx *web.Context, params map[string]string, format string) {
+	format = strings.ToUpper(format)
+	if len(format) == 0 {
+		format = "JSON"
+	}
+	entries, err := c.zipCodeMapper.Query(params)
+	if err != nil {
+		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
+		return
+	}
+	content, err := MarshalEntries(entries, format)
+	if err != nil {
+		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
+		return
+	}
+	WriteResponse(ctx, content, format)
+} 
 
 func (c ZipCodeController) root(ctx *web.Context) {
 	ctx.WriteString("Welcome to Zilch!")
@@ -123,6 +133,8 @@ func (c ZipCodeController) Start(port string) {
 	web.Get("/", c.root)
 	web.Get("/lookup/zip/(.*)", c.lookupZipCode)
 	web.Get("/lookup/areaCode/(.*)", c.lookupAreaCode)
+	web.Get("/query\\.?(.*)", c.queryReq)
+	web.Post("/query\\.?(.*)", c.queryReq)
 
 	fmt.Println("Listening on port:", port)
 	web.Run("0.0.0.0:" + port)

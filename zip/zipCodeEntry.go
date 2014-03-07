@@ -20,7 +20,6 @@ type ZipCodeEntry struct {
 	AreaCodes []string
 	Latitude float64
 	Longitude float64
-	Population uint32
 }
 
 func MarshalEntries(entries []ZipCodeEntry, format string) (string, error) {
@@ -73,9 +72,9 @@ func (z ZipCodeEntry) Marshal(format string) (string, error) {
 func (z ZipCodeEntry) ToXml() string {
 	buf := bytes.Buffer{}
 	buf.WriteString("<ZipCodeEntry>")
-	buf.WriteString("<ZipCode>"+z.ZipCode+"</ZipCode>")
-	buf.WriteString("<Type>"+z.Type+"</Type>")
-	buf.WriteString("<City>"+strtoxml(z.City)+"</City>")
+	buf.WriteString(tag("ZipCode", z.ZipCode))
+	buf.WriteString(tag("Type", z.Type))
+	buf.WriteString(tag("City", z.City))
 	if len(z.AcceptableCities) > 0 {
 		buf.WriteString("<AcceptableCities>")
 		for _, city := range z.AcceptableCities {
@@ -94,10 +93,10 @@ func (z ZipCodeEntry) ToXml() string {
 	} else {
 		buf.WriteString("<UnacceptableCities/>")
 	}
-	buf.WriteString("<County>"+strtoxml(z.County)+"</County>")
-	buf.WriteString("<State>"+z.State+"</State>")
-	buf.WriteString("<Country>"+strtoxml(z.Country)+"</Country>")
-	buf.WriteString("<TimeZone>"+strtoxml(z.TimeZone)+"</TimeZone>")
+	buf.WriteString(tag("County", z.County))
+	buf.WriteString(tag("State", z.State))
+	buf.WriteString(tag("Country", z.Country))
+	buf.WriteString(tag("TimeZone", z.TimeZone))
 	if len(z.AreaCodes) > 0 {
 		buf.WriteString("<AreaCodes>")
 		for _, areaCode := range z.AreaCodes {
@@ -107,9 +106,8 @@ func (z ZipCodeEntry) ToXml() string {
 	} else {
 		buf.WriteString("<AreaCodes/>")
 	}
-	buf.WriteString("<Latitude>"+fmt.Sprintf("%v",z.Latitude)+"</Latitude>")
-	buf.WriteString("<Longitude>"+fmt.Sprintf("%v",z.Longitude)+"</Longitude>")
-	buf.WriteString("<Population>"+fmt.Sprintf("%v",z.Population)+"</Population>")
+	buf.WriteString(tag("Latitude", fmt.Sprintf("%v", z.Latitude)))
+	buf.WriteString(tag("Longitude", fmt.Sprintf("%v", z.Longitude)))
 	buf.WriteString("</ZipCodeEntry>")
 	return buf.String()
 }
@@ -119,6 +117,13 @@ func strtoxml(text string) string {
 		return "<![CDATA[" + text + "]]>"
 	}
 	return text
+}
+
+func tag(tagname, text string) string {
+	if len(text) == 0 {
+		return fmt.Sprintf("<%s/>", tagname)
+	}
+	return fmt.Sprintf("<%s>%s</%s>", tagname, strtoxml(text), tagname)
 }
 
 func (z ZipCodeEntry) ToJson() string {
