@@ -3,6 +3,8 @@ package zip
 import (
 	"fmt"
 	"strings"
+	"bufio"
+	"compress/gzip"
 	"github.com/hoisie/web"
 )
 
@@ -22,13 +24,45 @@ func (e ErrorString) ToJson() string {
 	return fmt.Sprintf("{\"error\":\"%v\"}", string(e))
 }
 
-func WriteResponse(ctx *web.Context, resp string, format string) {
-	if format == "XML" {
-		ctx.ResponseWriter.Header().Set("Content-type", "text/xml")
-	} else if format == "JSON" {
-		ctx.ResponseWriter.Header().Set("Content-type", "application/json")
+func GetCallback(ctx *web.Context) string {
+	callback := ctx.Request.FormValue("callback")
+	if len(callback) == 0 {
+		callback = ctx.Request.FormValue("jsonp")
 	}
-	ctx.WriteString(resp)
+	return callback
+}
+
+func AcceptGzip(ctx *web.Context) bool {
+	h := ctx.Request.Header
+	e := h.Get("Accept-encoding")
+	return strings.Index(e, "gzip") >= 0
+}
+
+func WriteResponse(ctx *web.Context, resp string, format string) {
+	callback := GetCallback(ctx)
+	if len(callback) != 0 {
+		format = "JSONP"
+	}
+	switch format {
+	case "XML":
+		ctx.ResponseWriter.Header().Set("Content-type", "text/xml")
+	case "JSON":
+		ctx.ResponseWriter.Header().Set("Content-type", "application/json")
+	case "JSONP":
+		ctx.ResponseWriter.Header().Set("Content-type", "application/javascript")
+		resp = callback + "(" + resp + ");"
+	} 
+	if len(resp) > 10 && AcceptGzip(ctx) {
+		ctx.ResponseWriter.Header().Set("Content-encoding", "gzip")
+		gzw := gzip.NewWriter(ctx.ResponseWriter)
+		bw := bufio.NewWriter(gzw)
+		bw.WriteString(resp)
+		bw.Flush()
+		gzw.Flush()
+		gzw.Close()
+	} else {
+		ctx.WriteString(resp)
+	}
 }
 
 func Throw(e string) error {
@@ -58,7 +92,6 @@ func (c ZipCodeController) lookupZipCode(ctx *web.Context, request string) {
 		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")
 		return
 	}
-	ctx.ResponseWriter.Header().Set("Content-Type", "application/json")
 	content, err := entry.Marshal(req.GetFormat())
 	if err != nil {
 		WriteResponse(ctx, ErrorString(err.Error()).ToJson(), "JSON")

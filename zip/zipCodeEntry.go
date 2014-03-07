@@ -26,7 +26,7 @@ type ZipCodeEntry struct {
 func (z ZipCodeEntry) Marshal(format string) (string, error) {
 	if format == "XML" {
 		return z.ToXml(), nil
-	} else if format == "JSON" {
+	} else if format == "JSON" || format == "JSONP" {
 		return z.ToJson(), nil
 	}
 	return "", Throw(fmt.Sprintf("Invalid format: %", format))
