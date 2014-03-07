@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"encoding/json"
-	"encoding/xml"
 )
 
 type ZipCodeEntry struct {
@@ -65,10 +64,45 @@ func (z ZipCodeEntry) Marshal(format string) (string, error) {
 
 func (z ZipCodeEntry) ToXml() string {
 	buf := bytes.Buffer{}
-	enc := xml.NewEncoder(&buf)
-	if err := enc.Encode(&z); err != nil {
-		fmt.Println("Error:",err)
+	buf.WriteString("<ZipCodeEntry>")
+	buf.WriteString("<ZipCode>"+z.ZipCode+"</ZipCode>")
+	buf.WriteString("<Type>"+z.Type+"</Type>")
+	buf.WriteString("<City>"+z.City+"</City>")
+	if len(z.AcceptableCities) > 0 {
+		buf.WriteString("<AcceptableCities>")
+		for _, city := range z.AcceptableCities {
+			buf.WriteString("<City>"+city+"</City>")
+		}
+		buf.WriteString("</AcceptableCities>")
+	} else {
+		buf.WriteString("<AcceptableCities/>")
 	}
+	if len(z.UnacceptableCities) > 0 {
+		buf.WriteString("<UnacceptableCities>")
+		for _, city := range z.UnacceptableCities {
+			buf.WriteString("<City>"+city+"</City>")
+		}
+		buf.WriteString("</UnacceptableCities>")
+	} else {
+		buf.WriteString("<UnacceptableCities/>")
+	}
+	buf.WriteString("<County>"+z.County+"</County>")
+	buf.WriteString("<State>"+z.State+"</State>")
+	buf.WriteString("<Country>"+z.Country+"</Country>")
+	buf.WriteString("<TimeZone>"+z.TimeZone+"</TimeZone>")
+	if len(z.AreaCodes) > 0 {
+		buf.WriteString("<AreaCodes>")
+		for _, areaCode := range z.AreaCodes {
+			buf.WriteString("<AreaCode>"+areaCode+"</AreaCode>")
+		}
+		buf.WriteString("</AreaCodes>")
+	} else {
+		buf.WriteString("<AreaCodes/>")
+	}
+	buf.WriteString("<Latitude>"+fmt.Sprintf("%v",z.Latitude)+"</Latitude>")
+	buf.WriteString("<Longitude>"+fmt.Sprintf("%v",z.Longitude)+"</Longitude>")
+	buf.WriteString("<Population>"+fmt.Sprintf("%v",z.Population)+"</Population>")
+	buf.WriteString("</ZipCodeEntry>")
 	return buf.String()
 }
 
