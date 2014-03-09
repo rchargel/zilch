@@ -60,6 +60,22 @@ func EntriesToJson(entries []ZipCodeEntry) string {
 	return buf.String()
 }
 
+func (z ZipCodeEntry) AddCity(city string) ZipCodeEntry {
+	acceptableCities := append(z.AcceptableCities, city)
+	return ZipCodeEntry { z.ZipCode,
+		z.Type,
+		z.City,
+		acceptableCities,
+		z.UnacceptableCities,
+		z.County,
+		z.State,
+		z.Country,
+		z.TimeZone,
+		z.AreaCodes,
+		z.Latitude,
+		z.Longitude }
+}
+
 func (z ZipCodeEntry) Marshal(format string) (string, error) {
 	if format == "XML" {
 		return z.ToXml(), nil
