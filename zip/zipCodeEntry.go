@@ -22,6 +22,34 @@ type ZipCodeEntry struct {
 	Longitude float64
 }
 
+type ZipSorter []ZipCodeEntry
+
+func (z ZipSorter) Len() int {
+	return len(z)
+}
+
+func (z ZipSorter) Swap(i, j int) {
+	z[i], z[j] = z[j], z[i] 
+}
+
+func (z ZipSorter) Less(i, j int) bool {
+	ic := 0
+	jc := 0
+	if z[i].Country != "US" {
+		ic = 1
+	}
+	if z[j].Country != "US" {
+		jc = 1
+	}
+	if ic != jc {
+		return ic < jc
+	}
+	if z[i].Country != z[j].Country {
+		return z[i].Country < z[j].Country
+	}
+	return z[i].ZipCode < z[j].ZipCode
+}
+
 func MarshalEntries(entries []ZipCodeEntry, format string) (string, error) {
 	switch format {
 	case "XML":

@@ -2,6 +2,7 @@ package zip
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -155,8 +156,9 @@ func (z *ZipCodeMapper) Query(params map[string]string) ([]ZipCodeEntry, error) 
 			entries = append(entries, result.entry)
 		}
 	}
-	if len(entries) > 500 {
-		entries = entries[0:500]
+	sort.Sort(ZipSorter(entries))
+	if len(entries) > 1000 {
+		entries = entries[0:1000]
 	}
 	return entries, nil
 }
