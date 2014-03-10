@@ -129,7 +129,81 @@ func (c ZipCodeController) query(ctx *web.Context, params map[string]string, for
 } 
 
 func (c ZipCodeController) root(ctx *web.Context) {
-	ctx.WriteString("Welcome to Zilch!")
+	ctx.Header().Set("Content-type","text/html")
+	content := `
+<!doctype HTML>
+<html>
+	<head>
+		<title>ZiLCh - Zipcode Lookup Channel</title>
+		<meta charset="UTF-8"/>
+		<style type="text/css">
+		html,body { font-family: Arial, sans-serif; background: #ddd; }
+		h1,h2,h3 { text-align: center; }
+		h4,h5,h6 { text-align: left; }
+		table { width: 80%; border-spacing: 0; border-collapse: separate; }
+		td,th { border: 1px solid #000; text-align: left; }
+		</style>
+	</head>
+	<body>
+		<h1>Welcome to ZiLCh</h1>
+		<h3>Zipcode Lookup Channel</h3>
+		<p>
+			ZiLCh is a simple REST-like API used to lookup information about zip codes. 
+			It's very simple to use, as it has only one URL to retrieve from (/query). Here's an
+			<a href="/query.yaml?ZipCode=12345">example</a>: 
+		</p>
+		<h4>How much does it cost?</h4>
+		<p>Zilch! It's free to use.</p>
+		<h4>What query parameters are supported?</h4>
+		<table>
+			<thead>
+				<tr><th>Parameter</th><th>Description</th></tr>
+			</thead>
+			<tbody>
+				<tr> <td>ZipCode</td> <td>The zip code you're looking for.</td> </tr>
+				<tr> <td>City</td> <td>Any part of the city's name (eg: Phila will find Philadelphia). Not case sensitive.</td> </tr>
+				<tr> <td>Country</td> <td>The 2-letter country code. Uppercase only.</td> </tr>
+				<tr> <td>State</td> <td>The state abbreviation. Uppercase only.</td> </tr>
+				<tr> <td>County</td> <td>Any part of the county's name. Not all countries have county data. Not case sensitive.</td> </tr>
+				<tr> <td>AreaCode</td> <td>The 3-digit area code for a phone number. United States Only.</td> </tr>
+			</tbody>
+		</table>
+		<p><strong>Note:</strong> There is a hard limit of 1,000 records returned in any query.</p>
+		<h4>What response formats are supported?</h4>
+		<p>The response format is selected by changing the file extension of "/query" (eg: /query.xml)
+			<ul>
+				<li>JSON: /query.json or /query.js (this is the default format if no extension is added)</li>
+				<li>XML: /query.xml</li>
+				<li>YAML: /query.yaml</li>
+			</ul>
+		</p>
+		<h4>What about JSONP support?</h4>
+		<p>
+			If you hit this service directly from a browser, you'll probably want to use JSONP in order to
+			avoid cross-domain scripting issues.  Simply add your callback to your GET request via the "callback"
+			or "jsonp" query parameters.  This is supported out-of-the-box by Javascript APIs like 
+			<a href="http://jquery.org">jQuery</a>.  The only response format for JSONP is JSON.
+			Here's an example: <a href="/query.js?callback=mycallback&ZipCode=12345">/query.js?<b>callback=mycallback</b>&amp;ZipCode=12345</a>
+		</p>
+		<h4>What countries are supported?</h4>
+		<p>Currently the following countries are supported
+			<ul>
+				<li>United States (data from US Postal Service)</li>
+				<li>Canada (data from GeoNames.org)</li>
+				<li>Mexico (data from GeoNames.org)</li>
+				<li>Great Britain (data from GeoNames.org)</li>
+				<li>Brazil (data from GeoNames.org)</li>
+			</ul>
+		</p>
+		<h4>Where can I get the source?</h4>
+		<p>
+			The source is available on <a href="https://github.com/rchargel/zilch">GitHub</a>. You'll need <a href="http://golang.org/">Go</a> to
+			run or install this on your own server.
+		</p>
+	</body>
+</html>
+`
+	ctx.WriteString(content)
 }
 
 func (c ZipCodeController) Start(port string) {
