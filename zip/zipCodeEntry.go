@@ -188,15 +188,15 @@ func (z ZipCodeEntry) ToXml() string {
 
 func (z ZipCodeEntry) ToYaml() string {
 	buf := bytes.Buffer{}
-	buf.WriteString("  - ZipCodeEntry:\n")
-	
 	val := reflect.ValueOf(z)
 	for i := 0; i < val.NumField(); i++ {
 		valField := val.Field(i)
 		typeField := val.Type().Field(i)
 		f := valField.Interface()
 		val := reflect.ValueOf(f)
-		buf.WriteString(fmt.Sprintf("      %s:", typeField.Name))
+		if i == 0 { buf.WriteString("  - ") }
+		else { buf.WriteString("    ") }
+		buf.WriteString(fmt.Sprintf("%s:", typeField.Name))
 		for j := 0; j < (20 - len(typeField.Name)); j++ { buf.WriteString(" ") }
 		switch val.Kind() {
 		case reflect.String:
