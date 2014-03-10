@@ -42,10 +42,10 @@ func (z *ZipCodeMapper) putdata(ch chan ZipCodeEntry) {
 }
 
 func (z *ZipCodeMapper) Init() {
-	r := ZipReader{"./resources/all_zip_code_database.csv"}
+	r := ZipCodeDB{"./resources/"}
 	ch := make(chan ZipCodeEntry)
 
-	go r.Read(ch)
+	go r.LoadAll(ch)
 	go z.putdata(ch)
 }
 
