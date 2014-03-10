@@ -137,11 +137,11 @@ func (c ZipCodeController) root(ctx *web.Context) {
 		<title>ZiLCh - Zipcode Lookup Channel</title>
 		<meta charset="UTF-8"/>
 		<style type="text/css">
-		html,body { font-family: Arial, sans-serif; background: #ddd; }
+		html,body { font-family: Arial, sans-serif; background: #eee; }
 		h1,h2,h3 { text-align: center; }
 		h4,h5,h6 { text-align: left; }
 		table { width: 80%; border-spacing: 0; border-collapse: separate; }
-		td,th { border: 1px solid #000; text-align: left; }
+		td,th { border: 1px solid #000; text-align: left; padding: 0.3em 1.2em;}
 		</style>
 	</head>
 	<body>
@@ -153,8 +153,19 @@ func (c ZipCodeController) root(ctx *web.Context) {
 			<a href="/query.yaml?ZipCode=12345">example</a>: 
 		</p>
 		<h4>How much does it cost?</h4>
-		<p>Zilch! It's free to use.</p>
+		<p>Zilch! It's in the name.</p>
+		<h4>Do I need an application key?</h4>
+		<p>Nope, but if you really want one, yours is 1234. Shh!! Don't tell anyone.</p>
 		<h4>What query parameters are supported?</h4>
+		<h4>Why build this service in the first place?</h4>
+		<p>
+			After implementing zip-code lookup features in three different applications in the same year, I decided that there really ought to be an open-source,
+			and free to use version of this feature.  It should support XML and JSONP, and should be simple to plug into any web or mobile app.  The US Postal Service
+			does provide a SOAP based free lookup, but I tried to access it, and it required an application key, which you have to get by emailing somebody at USPS.
+			I've tried this, and never received a response.  There are other services available online, but they all want you to pay after exceeding a request limit.
+			This service is free.  <em>There are no limits.</em>  If I start to get hammered by requests, I may start asking for donations, but I am nowhere near that
+			point.  Until then, enjoy.
+		</p>
 		<table>
 			<thead>
 				<tr><th>Parameter</th><th>Description</th></tr>
@@ -185,6 +196,10 @@ func (c ZipCodeController) root(ctx *web.Context) {
 			<a href="http://jquery.org">jQuery</a>.  The only response format for JSONP is JSON.
 			Here's an example: <a href="/query.js?callback=mycallback&ZipCode=12345">/query.js?<b>callback=mycallback</b>&amp;ZipCode=12345</a>
 		</p>
+		<p>
+			For browsers that don't fully support open standards (I won't name any names, but Internet Explorer knows who I'm talking about), make sure
+			to add the ".js" file extension to the url, as seen in the example above.
+		</p>
 		<h4>What countries are supported?</h4>
 		<p>Currently the following countries are supported
 			<ul>
@@ -195,11 +210,23 @@ func (c ZipCodeController) root(ctx *web.Context) {
 				<li>Brazil (data from GeoNames.org)</li>
 			</ul>
 		</p>
+		<h4>Why not support more countries?</h4>
+		<p>
+			This is a two part answer. First, this application is deployed onto Heroku. If the virtual machine this app is deployed onto is idle for more
+			than a few minutes, it will spin down.  When the next request comes back in, the virtual machine will spin back up.  Currently this takes about
+			four seconds, but adding every country would likely increase that spin-up time. If the app's usage becomes frequent enough that it never spins down
+			I may add more countries. Secondly, it takes time for me to support these zip codes, and they have to be routinely updated. Five countries is a good
+			test bed, and again, if this tool becomes more popular I may start to add to the database.  If you absolutely need more countries right away, you can
+			download the source code and add your CSV files to run on your own servers.  It's really that easy.
+		</p>
 		<h4>Where can I get the source?</h4>
 		<p>
 			The source is available on <a href="https://github.com/rchargel/zilch">GitHub</a>. You'll need <a href="http://golang.org/">Go</a> to
 			run or install this on your own server.
 		</p>
+		<h4>What is the license for this tool?</h4>
+		<p>This is licensed under the <a href="http://opensource.org/licenses/LGPL-3.0">GNU Lesser General Public License, version 3.0</a>. The license is 
+		included in the source code.
 	</body>
 </html>
 `
