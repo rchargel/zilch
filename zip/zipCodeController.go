@@ -225,14 +225,14 @@ func (c ZipCodeController) root(ctx *web.Context) {
 			</ul>
 		</p>
 		<p>Check out the distribution map below to see the coverage.<br/>
-			<img src="/map.png" alt="Distribution Map" title="Distribution Map"/>
+			<a href="/map.png"><img src="/map.png" width="540" height="270" alt="Distribution Map" title="Distribution Map"/></a>
 		</p>
 		<h4>Why not support more countries?</h4>
 		<p>
 			This is a two part answer. First, this application is deployed onto Heroku. If the virtual machine this app is deployed onto is idle for more
 			than a few minutes, it will spin down.  When the next request comes back in, the virtual machine will spin back up.  Currently this takes about
 			four seconds, but adding every country would likely increase that spin-up time. If the app's usage becomes frequent enough that it never spins down
-			I may add more countries. Secondly, it takes time for me to support these zip codes, and they have to be routinely updated. Five countries is a good
+			I may add more countries. Secondly, it takes time for me to support these zip codes, and they have to be routinely updated. Eight countries is a good
 			test bed, and again, if this tool becomes more popular I may start to add to the database.  If you absolutely need more countries right away, you can
 			download the source code and add your CSV files to run on your own servers.  It's really that easy.
 		</p>

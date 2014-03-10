@@ -7,8 +7,8 @@ import "image/draw"
 import "image/png"
 
 func drawPoint(m *image.RGBA, lat, lng float64) {
-	y := int((180 - (lat + 90)) * 2)
-	x := int((lng + 180) * 2)
+	y := int((180 - (lat + 90)) * 6)
+	x := int((lng + 180) * 6)
 
 	p := image.Rect(x - 1, y - 1, x + 1, y + 1)
 	green := color.RGBA{0,255,0,255}
@@ -16,7 +16,7 @@ func drawPoint(m *image.RGBA, lat, lng float64) {
 }
 
 func RenderZipCodeMap(w io.Writer, mapper *ZipCodeMapper) {
-	m := image.NewRGBA(image.Rect(0, 0, 180 * 4, 90 * 4))
+	m := image.NewRGBA(image.Rect(0, 0, 180 * 12, 90 * 12))
 	blue := color.RGBA{0,0,255,255}
 	draw.Draw(m, m.Bounds(), &image.Uniform{blue}, image.ZP, draw.Src)
 
