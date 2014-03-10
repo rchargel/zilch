@@ -40,6 +40,7 @@ func AcceptGzip(ctx *web.Context) bool {
 
 func WriteResponse(ctx *web.Context, resp string, format string) {
 	callback := GetCallback(ctx)
+	if format == "JS" { format = "JSON" }
 	if len(callback) != 0 {
 		format = "JS"
 	}
