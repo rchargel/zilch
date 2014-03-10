@@ -46,13 +46,13 @@ func WriteResponse(ctx *web.Context, resp string, format string) {
 	}
 	switch format {
 	case "XML":
-		ctx.ResponseWriter.Header().Set("Content-type", "text/xml")
+		ctx.ResponseWriter.Header().Set("Content-type", "text/xml; charset=utf-8")
 	case "JSON":
-		ctx.ResponseWriter.Header().Set("Content-type", "application/json")
+		ctx.ResponseWriter.Header().Set("Content-type", "application/json; charset=utf-8")
 	case "YAML":
-		ctx.ResponseWriter.Header().Set("Content-type", "text/x-yaml")
+		ctx.ResponseWriter.Header().Set("Content-type", "text/x-yaml; charset=utf-8")
 	case "JS":
-		ctx.ResponseWriter.Header().Set("Content-type", "application/javascript")
+		ctx.ResponseWriter.Header().Set("Content-type", "application/javascript; charset=utf-8")
 		resp = callback + "(" + resp + ");"
 	} 
 	if len(resp) > 10 && AcceptGzip(ctx) {
@@ -128,6 +128,11 @@ func (c ZipCodeController) query(ctx *web.Context, params map[string]string, for
 	WriteResponse(ctx, content, format)
 } 
 
+func (c ZipCodeController) renderMap(ctx *web.Context) {
+	ctx.ResponseWriter.Header().Set("Content-type", "image/png")
+	RenderZipCodeMap(ctx.ResponseWriter, c.zipCodeMapper)
+}
+
 func (c ZipCodeController) root(ctx *web.Context) {
 	ctx.Header().Set("Content-type","text/html")
 	content := `
@@ -138,10 +143,11 @@ func (c ZipCodeController) root(ctx *web.Context) {
 		<meta charset="UTF-8"/>
 		<style type="text/css">
 		html,body { font-family: Arial, sans-serif; background: #eee; }
-		h1,h2,h3 { text-align: center; }
+		h1,h2,h3{ text-align: center; }
 		h4,h5,h6 { text-align: left; }
 		table { width: 80%; border-spacing: 0; border-collapse: separate; }
 		td,th { border: 1px solid #000; text-align: left; padding: 0.3em 1.2em;}
+		img { border: 3px inset #999; }
 		</style>
 	</head>
 	<body>
@@ -179,6 +185,11 @@ func (c ZipCodeController) root(ctx *web.Context) {
 				<tr> <td>AreaCode</td> <td>The 3-digit area code for a phone number. United States Only.</td> </tr>
 			</tbody>
 		</table>
+		<p>
+			I can't guarantee that a zip/postal code will be universally unique, only that it is unique to a country.  For instance, the zip code "20010"
+			is used in more than one country: <a href="/query.yaml?ZipCode=20010">/query?ZipCode=20010</a>. Including a country code in the query will ensure a 
+			unique response when querying by zip code: <a href="/query.yaml?ZipCode=20010&Country=US">/query.yaml?ZipCode=20010&amp<b>Country=US</b></a>.
+		</p>
 		<p><strong>Note:</strong> There is a hard limit of 1,000 records returned in any query.</p>
 		<h4>What response formats are supported?</h4>
 		<p>The response format is selected by changing the file extension of "/query" (eg: /query.xml)
@@ -206,9 +217,15 @@ func (c ZipCodeController) root(ctx *web.Context) {
 				<li>United States (data from US Postal Service)</li>
 				<li>Canada (data from GeoNames.org)</li>
 				<li>Mexico (data from GeoNames.org)</li>
-				<li>Great Britain (data from GeoNames.org)</li>
 				<li>Brazil (data from GeoNames.org)</li>
+				<li>Argentina (data from GeoNames.org)</li>
+				<li>Great Britain (data from GeoNames.org)</li>
+				<li>France (data from GeoNames.org)</li>
+				<li>Spain (data from GeoNames.org)</li>
 			</ul>
+		</p>
+		<p>Check out the distribution map below to see the coverage.<br/>
+			<img src="/map.png" alt="Distribution Map" title="Distribution Map"/>
 		</p>
 		<h4>Why not support more countries?</h4>
 		<p>
@@ -239,6 +256,7 @@ func (c ZipCodeController) Start(port string) {
 	web.Get("/lookup/areaCode/(.*)", c.lookupAreaCode)
 	web.Get("/query\\.?(.*)", c.queryReq)
 	web.Post("/query\\.?(.*)", c.queryReq)
+	web.Get("/map.png", c.renderMap)
 
 	fmt.Println("Listening on port:", port)
 	web.Run("0.0.0.0:" + port)
