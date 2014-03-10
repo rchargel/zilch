@@ -41,14 +41,16 @@ func AcceptGzip(ctx *web.Context) bool {
 func WriteResponse(ctx *web.Context, resp string, format string) {
 	callback := GetCallback(ctx)
 	if len(callback) != 0 {
-		format = "JSONP"
+		format = "JS"
 	}
 	switch format {
 	case "XML":
 		ctx.ResponseWriter.Header().Set("Content-type", "text/xml")
 	case "JSON":
 		ctx.ResponseWriter.Header().Set("Content-type", "application/json")
-	case "JSONP":
+	case "YAML":
+		ctx.ResponseWriter.Header().Set("Content-type", "text/x-yaml")
+	case "JS":
 		ctx.ResponseWriter.Header().Set("Content-type", "application/javascript")
 		resp = callback + "(" + resp + ");"
 	} 

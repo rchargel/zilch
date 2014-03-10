@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"reflect"
 	"encoding/json"
 )
 
@@ -54,9 +55,11 @@ func MarshalEntries(entries []ZipCodeEntry, format string) (string, error) {
 	switch format {
 	case "XML":
 		return EntriesToXml(entries), nil
+	case "YAML":
+		return EntriesToYaml(entries), nil
 	case "JSON":
 		return EntriesToJson(entries), nil
-	case "JSONP":
+	case "JS":
 		return EntriesToJson(entries), nil
 	}
 	return "", Throw(fmt.Sprintf("Invalid format: %s", format))
@@ -72,6 +75,17 @@ func EntriesToXml(entries []ZipCodeEntry) string {
 	}
 	buf.WriteString("</ZipCodeEntries>")
 	buf.WriteString("</Response>")
+	return buf.String()
+}
+
+func EntriesToYaml(entries []ZipCodeEntry) string {
+	buf := bytes.Buffer{}
+	buf.WriteString(fmt.Sprintf("Total: %v\n\n",len(entries)))
+	buf.WriteString("ZipCodeEntries:\n")
+
+	for _, entry := range entries {
+		buf.WriteString(entry.ToYaml())
+	}
 	return buf.String()
 }
 
@@ -107,10 +121,26 @@ func (z ZipCodeEntry) AddCity(city string) ZipCodeEntry {
 func (z ZipCodeEntry) Marshal(format string) (string, error) {
 	if format == "XML" {
 		return z.ToXml(), nil
-	} else if format == "JSON" || format == "JSONP" {
+	} else if format == "JSON" || format == "JS" {
 		return z.ToJson(), nil
+	} else if format == "YAML" {
+		return z.ToYaml(), nil
 	}
 	return "", Throw(fmt.Sprintf("Invalid format: %s", format))
+}
+
+func strtoxml(text string) string {
+	if strings.Index(text, "&") >= 0 {
+		return "<![CDATA[" + text + "]]>"
+	}
+	return text
+}
+
+func tag(tagname, text string) string {
+	if len(text) == 0 {
+		return fmt.Sprintf("<%s/>", tagname)
+	}
+	return fmt.Sprintf("<%s>%s</%s>", tagname, strtoxml(text), tagname)
 }
 
 func (z ZipCodeEntry) ToXml() string {
@@ -156,18 +186,35 @@ func (z ZipCodeEntry) ToXml() string {
 	return buf.String()
 }
 
-func strtoxml(text string) string {
-	if strings.Index(text, "&") >= 0 {
-		return "<![CDATA[" + text + "]]>"
+func (z ZipCodeEntry) ToYaml() string {
+	buf := bytes.Buffer{}
+	buf.WriteString("  - ZipCodeEntry:\n")
+	
+	val := reflect.ValueOf(z)
+	for i := 0; i < val.NumField(); i++ {
+		valField := val.Field(i)
+		typeField := val.Type().Field(i)
+		f := valField.Interface()
+		val := reflect.ValueOf(f)
+		buf.WriteString(fmt.Sprintf("      %s:", typeField.Name))
+		for j := 0; j < (20 - len(typeField.Name)); j++ { buf.WriteString(" ") }
+		switch val.Kind() {
+		case reflect.String:
+			buf.WriteString(val.String())
+		case reflect.Float64:
+			buf.WriteString(fmt.Sprintf("%v", val.Float()))
+		case reflect.Slice:
+			buf.WriteString("[")
+			for j := 0; j < val.Len(); j++ {
+				if j != 0 { buf.WriteString(", ") }
+				buf.WriteString(fmt.Sprintf("%s", val.Index(j)))
+			}
+			buf.WriteString("]")
+		}
+		buf.WriteString("\n")
 	}
-	return text
-}
-
-func tag(tagname, text string) string {
-	if len(text) == 0 {
-		return fmt.Sprintf("<%s/>", tagname)
-	}
-	return fmt.Sprintf("<%s>%s</%s>", tagname, strtoxml(text), tagname)
+	buf.WriteString("\n")
+	return buf.String()
 }
 
 func (z ZipCodeEntry) ToJson() string {
