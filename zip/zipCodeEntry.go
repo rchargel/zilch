@@ -194,8 +194,11 @@ func (z ZipCodeEntry) ToYaml() string {
 		typeField := val.Type().Field(i)
 		f := valField.Interface()
 		val := reflect.ValueOf(f)
-		if i == 0 { buf.WriteString("  - ") }
-		else { buf.WriteString("    ") }
+		if i == 0 { 
+			buf.WriteString("  - ") 
+		} else { 
+			buf.WriteString("    ") 
+		}
 		buf.WriteString(fmt.Sprintf("%s:", typeField.Name))
 		for j := 0; j < (20 - len(typeField.Name)); j++ { buf.WriteString(" ") }
 		switch val.Kind() {
