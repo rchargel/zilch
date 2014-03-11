@@ -16,6 +16,7 @@ func StartServer(port string) {
 	web.Get("/countries.json", zc.ListCountries)
 	web.Get("/countries.js", zc.ListCountries)
         web.Get("/map.png", zc.RenderMap)
+        web.Get("/map_small.png", zc.RenderSmallMap)
         web.Get("/map_transparent.png", zc.RenderTransparentMap)
 	web.Get("/images/(.*)", RenderImage)
 	web.Get("/js/(.*)", RenderJs)
