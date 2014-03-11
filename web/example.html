@@ -1,10 +1,24 @@
 <!doctype HTML>
-<html>
+<html xmlns:ng="http://angularjs.org" id="ng-app" ng-app="zilch">
 	<head>
 		<title>ZiLChi - Example</title>
 		<meta charset="UTF-8"/>
 		<script type="text/javascript" src="/js/angular.1.2.14.min.js"></script>
 		<script type="text/javascript" src="/js/example.js"></script>
+		<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-39324990-1']);
+		_gaq.push(['_setAllowLinker', 'true']);
+		_gaq.push(['_trackPageview']);
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+		</script>
+		<!--[if lte IE 7]>
+		<script src="/js/json2.js"></script>
+		<![endif]-->
 		<style type="text/css">
 		html,body { font-family: Arial, sans-serif; background: #eee; }
 		h1,h2,h3{ text-align: center; }
@@ -31,12 +45,11 @@
 		#entries li:hover { background-color: #ccc; }
 		</style>
 	</head>
-	<body ng-app="zilch" ng-controller="ZilchController">
+	<body ng-controller="ZilchController">
 		<h1>ZiLCh - Example</h1>
 		<p>
 			This is a simple example page. Just type a zip code into the textarea below.
 		</p>
-		<p class="red">{{errorMessage}}</p>
 		<p>
 			<label for="zipCode">Zip Code:</label>
 			<div id="entries" ng-hide="entries.length == 0">
@@ -48,9 +61,16 @@
 			</div>
 			<input type="text" ng-model="zipCode" id="zipCode"/>
 		</p>
+		<p>
+			<label for="country">Country [optional]:</label>
+			<select id="country" ng-model="countryCode" ng-options="c for c in countries">
+				<option value="">None</option>
+			</select>
+		</p>
 		<p>City: {{entry.city}}</p>
 		<p>State: {{entry.state}}</p>
 		<p>Country: {{entry.country}}</p>
 		<p>Location: {{entry.latitude}} / {{entry.longitude}}</p>
+		<p class="red">{{errorMessage}}</p>
 	</body>
 </html>

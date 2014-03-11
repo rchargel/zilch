@@ -3,8 +3,10 @@ package zip
 import (
 	"fmt"
 	"strings"
+	"bytes"
 	"bufio"
 	"compress/gzip"
+	"encoding/json"
 	"github.com/hoisie/web"
 )
 
@@ -88,21 +90,52 @@ func(r UrlRequest) GetFormat() string {
 	return "JSON"
 }
 
-func (c ZipCodeController) lookupZipCode(ctx *web.Context, request string) {
+func (c ZipCodeController) ListCountries(ctx *web.Context) {
+	m := make(map[string]int)
+	for country, cmap := range c.zipCodeMapper.ZipCodeMap {
+		m[country] = len(cmap)	
+	}
+	
+	w := &bytes.Buffer{}
+	e := json.NewEncoder(w)
+	e.Encode(m)
+	content := w.String()
+
+	callback := GetCallback(ctx)
+	if len(callback) == 0 {
+		ctx.ResponseWriter.Header().Set("Content-type", "application/json; charset=utf-8")
+	} else {
+		ctx.ResponseWriter.Header().Set("Content-type", "application/javascript; charset=utf-8")
+		content = callback + "(" + content + ");"
+	}
+	if AcceptGzip(ctx) {
+ 		ctx.ResponseWriter.Header().Set("Content-encoding", "gzip")
+		gzw := gzip.NewWriter(ctx.ResponseWriter)
+		bw := bufio.NewWriter(gzw)
+		bw.WriteString(content)
+		bw.Flush()
+		gzw.Flush()
+		gzw.Close()
+	} else {
+		ctx.WriteString(content)
+	}
+}
+
+func (c ZipCodeController) LookupZipCode(ctx *web.Context, request string) {
 	req := UrlRequest(request)
 	q := make(map[string]string)
 	q["ZipCode"] = req.GetValue()
 	c.query(ctx, q, req.GetFormat())
 }
 
-func (c ZipCodeController) lookupAreaCode(ctx *web.Context, request string) {
+func (c ZipCodeController) LookupAreaCode(ctx *web.Context, request string) {
 	req := UrlRequest(request)
 	q := make(map[string]string)
 	q["AreaCode"] = req.GetValue()
 	c.query(ctx, q, req.GetFormat())
 }
 
-func (c ZipCodeController) queryReq(ctx *web.Context, format string) {
+func (c ZipCodeController) QueryReq(ctx *web.Context, format string) {
 	p := make(map[string]string)
 	for k, _ := range ctx.Request.Form {
 		p[k] = ctx.Request.FormValue(k)
@@ -128,9 +161,14 @@ func (c ZipCodeController) query(ctx *web.Context, params map[string]string, for
 	WriteResponse(ctx, content, format)
 } 
 
-func (c ZipCodeController) renderMap(ctx *web.Context) {
+func (c ZipCodeController) RenderMap(ctx *web.Context) {
 	ctx.ResponseWriter.Header().Set("Content-type", "image/png")
-	RenderZipCodeMap(ctx.ResponseWriter, c.zipCodeMapper)
+	RenderZipCodeMap(ctx.ResponseWriter, c.zipCodeMapper, false)
+}
+
+func (c ZipCodeController) RenderTransparentMap(ctx *web.Context) {
+	ctx.ResponseWriter.Header().Set("Content-type", "image/png")
+	RenderZipCodeMap(ctx.ResponseWriter, c.zipCodeMapper, true)
 }
 
 func NewZipCodeController() ZipCodeController {

@@ -1,8 +1,24 @@
 <!doctype HTML>
-<html>
+<html xmlns:ng="http://angularjs.org" id="ng-app" ng-app="zilch">
 	<head>
 		<title>ZiLCh - Zipcode Lookup Channel</title>
 		<meta charset="UTF-8"/>
+		<script type="text/javascript" src="/js/angular.1.2.14.min.js"></script>
+		<script type="text/javascript" src="/js/root.js"></script>
+		<!--[if lte IE 7]>
+		<script src="/js/json2.js"></script>
+		<![endif]-->
+		<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-39324990-1']);
+		_gaq.push(['_setAllowLinker', 'true']);
+		_gaq.push(['_trackPageview']);
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+		</script>
 		<style type="text/css">
 		html,body { font-family: Arial, sans-serif; background: #eee; }
 		h1,h2,h3{ text-align: center; }
@@ -10,6 +26,15 @@
 		table { width: 80%; border-spacing: 0; border-collapse: separate; }
 		td,th { border: 1px solid #000; text-align: left; padding: 0.3em 1.2em;}
 		img { border: 3px inset #999; }
+		div,p { clear: both; }
+		#countries {
+			float: left;
+			width: 25em;
+		}
+		#countries li {
+			float: left;
+			width: 5em;
+		}
 		</style>
 	</head>
 	<body>
@@ -74,32 +99,28 @@
 			to add the ".js" file extension to the url, as seen in the example above.
 		</p>
 		<h4>What countries are supported?</h4>
-		<p>Currently the following countries are supported
-			<ul>
-				<li>United States (data from US Postal Service)</li>
-				<li>Canada (data from GeoNames.org)</li>
-				<li>Mexico (data from GeoNames.org)</li>
-				<li>Brazil (data from GeoNames.org)</li>
-				<li>Argentina (data from GeoNames.org)</li>
-				<li>Great Britain (data from GeoNames.org)</li>
-				<li>France (data from GeoNames.org)</li>
-				<li>Spain (data from GeoNames.org)</li>
-				<li>Portugal (data from GeoNames.org)</li>
-				<li>Germany (data from GeoNames.org)</li>
-				<li>India (data from GeoNames.org)</li>
+		<div ng-controller="RootController">
+		<p>There are currently {{total}} records in the zip code database supporting the following countries:
+			<ul id="countries">
+				<li ng-repeat="country in countries">{{country}}</li>
 			</ul>
 		</p>
+		</div>
+		<p>Data comes from the US Postal Service and GeoNames.org.</p>
 		<p>Check out the distribution map below to see the coverage.<br/>
-			<a href="/map.png"><img src="/map.png" width="540" height="270" alt="Distribution Map" title="Distribution Map"/></a>
+			<a href="/map.png"><img src="/map.png" width="540" height="270" alt="Distribution Map" title="Distribution Map"/></a><br/>
+			Click the map to enlarge it.
 		</p>
+		<p>Here is a <a href="/map.html">3D Version of the Distribution Map</a> based on this <a href="http://www.smartjava.org/examples/population/">population map</a>.</p>
 		<h4>Why not support more countries?</h4>
 		<p>
-			This is a two part answer. First, this application is deployed onto Heroku. If the virtual machine this app is deployed onto is idle for more
-			than a few minutes, it will spin down.  When the next request comes back in, the virtual machine will spin back up.  Currently this takes about
-			four seconds, but adding every country would likely increase that spin-up time. If the app's usage becomes frequent enough that it never spins down
-			I may add more countries. Secondly, it takes time for me to support these zip codes, and they have to be routinely updated. This list of countries is a good
-			test bed, and again, if this tool becomes more popular I may start to add to the database.  If you absolutely need more countries right away, you can
+			This is a two part answer. First, it takes time for me to support these zip codes, and they have to be routinely updated. This list of countries is a good
+			test bed. However, if this tool becomes more popular I may start to add to the database.  If you absolutely need more countries right away, you can
 			download the source code and add your CSV files to run on your own servers.  It's really that easy.
+		</p>
+		<p>
+			Secondly, it's hard to find good data. Many of the zip code files I've found are missing information, or are incomplete in some way. There are some countries where I 
+			Can't find files at all.
 		</p>
 		<h4>Where can I get the source?</h4>
 		<p>
