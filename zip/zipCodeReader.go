@@ -98,6 +98,6 @@ func (r ZipReader) Read (ch chan ZipCodeEntry) {
 			}
 		}
 	}
-	fmt.Printf("Read %v records from file %s\n", count, r.Path)
+	fmt.Printf("Read %v lines from file %s\n", count, r.Path)
 	ch <- ZipCodeEntry{}
 }

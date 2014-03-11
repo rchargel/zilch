@@ -1,6 +1,7 @@
 package zip
 
 import (
+	"time"
 	"fmt"
 	"sort"
 	"strings"
@@ -21,7 +22,7 @@ func NewZipCodeMapper() *ZipCodeMapper {
 	return mapper
 }
 
-func (z *ZipCodeMapper) putdata(ch chan ZipCodeEntry) {
+func (z *ZipCodeMapper) putdata(ch chan ZipCodeEntry, t time.Time) {
 	count := uint32(0)
 	for entry := range ch {
 		_, ok := z.ZipCodeMap[entry.Country] 
@@ -31,22 +32,26 @@ func (z *ZipCodeMapper) putdata(ch chan ZipCodeEntry) {
 				z.ZipCodeMap[entry.Country][entry.ZipCode] = oldEntry
 			} else {
 				z.ZipCodeMap[entry.Country][entry.ZipCode] = entry
+				count = count + 1
 			}
 		} else {
 			z.ZipCodeMap[entry.Country] = make(map[string]ZipCodeEntry)
 			z.ZipCodeMap[entry.Country][entry.ZipCode] = entry
+			count = count + 1
 		}
-		count = count + 1
 	}
 	fmt.Printf("Stored %v records in database\n", count)
+	end := time.Now()
+	fmt.Printf("Data loaded in %v seconds\n",end.Sub(t))
 }
 
 func (z *ZipCodeMapper) Init() {
+	start := time.Now()
 	r := ZipCodeDB{"./resources/"}
 	ch := make(chan ZipCodeEntry)
 
 	go r.LoadAll(ch)
-	go z.putdata(ch)
+	go z.putdata(ch, start)
 }
 
 func QueryMap(data map[string]ZipCodeEntry, params map[string]string, ch chan QueryResult) {
