@@ -1,0 +1,56 @@
+<!doctype HTML>
+<html>
+	<head>
+		<title>ZiLChi - Example</title>
+		<meta charset="UTF-8"/>
+		<script type="text/javascript" src="/js/angular.1.2.14.min.js"></script>
+		<script type="text/javascript" src="/js/example.js"></script>
+		<style type="text/css">
+		html,body { font-family: Arial, sans-serif; background: #eee; }
+		h1,h2,h3{ text-align: center; }
+		h4,h5,h6 { text-align: left; }
+		table { width: 80%; border-spacing: 0; border-collapse: separate; }
+		td,th { border: 1px solid #000; text-align: left; padding: 0.3em 1.2em;}
+		img { border: 3px inset #999; }
+		input { font-size: 100%; width: 15em; display: block; }
+		.red { color: #f00; }
+		#entries { 
+			position: absolute;
+			left: 16em;
+		}
+		#entries ul {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			background-color: #fff;
+			border: 1px solid #000;
+			width: 20em;
+			min-width: 20em;
+		}
+		#entries li { padding: 0.2em 0.75em; cursor: pointer; }
+		#entries li:hover { background-color: #ccc; }
+		</style>
+	</head>
+	<body ng-app="zilch" ng-controller="ZilchController">
+		<h1>ZiLCh - Example</h1>
+		<p>
+			This is a simple example page. Just type a zip code into the textarea below.
+		</p>
+		<p class="red">{{errorMessage}}</p>
+		<p>
+			<label for="zipCode">Zip Code:</label>
+			<div id="entries" ng-hide="entries.length == 0">
+				<ul>
+					<li ng-repeat="entry in entries" ng-click="assignCity(entry)">
+						{{entry.city}}, {{entry.state}} ({{entry.country}})
+					</li>
+				</ul>
+			</div>
+			<input type="text" ng-model="zipCode" id="zipCode"/>
+		</p>
+		<p>City: {{entry.city}}</p>
+		<p>State: {{entry.state}}</p>
+		<p>Country: {{entry.country}}</p>
+		<p>Location: {{entry.latitude}} / {{entry.longitude}}</p>
+	</body>
+</html>
