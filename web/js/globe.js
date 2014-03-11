@@ -41,7 +41,6 @@ $(document).ready(function()  {
 
 function addEarth() {
 	var spGeo = new THREE.SphereGeometry(600,50,50);
-	//var planetTexture = THREE.ImageUtils.loadTexture("/map.png");
 	var planetTexture = THREE.ImageUtils.loadTexture("/images/world-big-2-grey.jpg");
 	var mat2 = new THREE.MeshPhongMaterial({
 		map: planetTexture,
@@ -58,7 +57,7 @@ function addLights() {
 
 function addDistribution() {
 	var spGeo = new THREE.SphereGeometry(600,50,50);
-	var cloudsTexture = THREE.ImageUtils.loadTexture( "/map_transparent.png" );
+	var cloudsTexture = THREE.ImageUtils.loadTexture("/map_transparent.png");
 	var materialClouds = new THREE.MeshPhongMaterial( { color: 0xffffff, map: cloudsTexture, transparent:true, opacity: 1 } );
 
 	meshClouds = new THREE.Mesh( spGeo, materialClouds );

@@ -163,12 +163,12 @@ func (c ZipCodeController) query(ctx *web.Context, params map[string]string, for
 
 func (c ZipCodeController) RenderMap(ctx *web.Context) {
 	ctx.ResponseWriter.Header().Set("Content-type", "image/png")
-	RenderZipCodeMap(ctx.ResponseWriter, c.zipCodeMapper, 12, false)
+	RenderZipCodeMap(ctx.ResponseWriter, c.zipCodeMapper, 6, false)
 }
 
 func (c ZipCodeController) RenderTransparentMap(ctx *web.Context) {
 	ctx.ResponseWriter.Header().Set("Content-type", "image/png")
-	RenderZipCodeMap(ctx.ResponseWriter, c.zipCodeMapper, 12, true)
+	RenderZipCodeMap(ctx.ResponseWriter, c.zipCodeMapper, 6, true)
 }
 
 func (c ZipCodeController) RenderSmallMap(ctx *web.Context) {
