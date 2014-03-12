@@ -230,10 +230,10 @@ func (z *ZipCodeMapper) Query(params map[string]string) (ZipQueryResult, error) 
 	start := 0
 	end := len(entries)
 	sort.Sort(ZipSorter(entries))
-	max := 1000
+	max := 200
 	if len(entries) > max {
 		start = 0
-		end = 200
+		end = max
 		if page, pageOk := params["page"]; pageOk {
 			if p, err := strconv.ParseInt(page, 10, 32); err == nil {
 				start = (int(p) - 1) * max
