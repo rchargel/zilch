@@ -1,6 +1,7 @@
 var POS_X = 1800;
-var POS_Y = 300;
+var POS_Y = 0;
 var POS_Z = 1800;
+var BASE_Y = 0;
 var WIDTH = 1000;
 var HEIGHT = 600;
 
@@ -32,6 +33,7 @@ var light = new THREE.DirectionalLight(0x5555ff, 3.5, 500);
 // we wait until the document is loaded before loading the
 // density data.
 $(document).ready(function()  {
+	$('#globe').mousemove(mouseCapture);
 	jQuery.get('/distribution.js', function(data) {
 		addLights();
 		addEarth();
@@ -86,13 +88,14 @@ function addDistribution(data) {
 	scene.add(total);
 }
 
+var meshClouds = null;
 function addClouds() {
 	var spGeo = new THREE.SphereGeometry(600,50,50);
 	var cloudsTexture = THREE.ImageUtils.loadTexture( "/images/earth_clouds_1024.png" );
 	var materialClouds = new THREE.MeshPhongMaterial( { color: 0xffffff, map: cloudsTexture, transparent:true, opacity: 0.1 } );
 
 	meshClouds = new THREE.Mesh( spGeo, materialClouds );
-	meshClouds.scale.set( 1.015, 1.015, 1.015 );
+	meshClouds.scale.set( 1.025, 1.025, 1.025 );
 	scene.add( meshClouds );
 }
 
@@ -104,11 +107,33 @@ function copy(obj) {
 	return c;
 }
 
+var mouseY = 0;
+var mouseX = 0;
+function mouseCapture(evt) {
+	var y = evt.offsetY;
+	mouseY = -(y - (HEIGHT / 2)) * 1.7;
+	mouseX = (evt.offsetX - (WIDTH / 2));
+}
+
+var lastShiftTime = null;
 function render() {
-	var timer = Date.now() * 0.0001;
-	camera.position.x = (Math.cos(timer) * 1800);
-	camera.position.z = (Math.sin(timer) * 1800);
+	var timer = Date.now();
+	camera.position.x = (Math.cos(timer / 10000) * 1800);
+	camera.position.z = (Math.sin(timer / 10000) * 1800);
+	if (lastShiftTime === null) {
+		lastShiftTime = timer;
+	} else {
+		var since = (timer - lastShiftTime) * 2;
+		var movement = (Math.abs(POS_Y - mouseY) * (POS_Y < mouseY ? 1 : -1)) / since;
+		
+		POS_Y += movement;
+		if (POS_Y < -500) { POS_Y = -500; }
+		if (POS_Y > 500) { POS_Y = 500; }
+		camera.position.y = POS_Y;
+		lastShiftTime = Date.now();
+	}
 	camera.lookAt(scene.position);
+	meshClouds.rotation.y = -(timer/40000);
 	light.position = copy(camera.position);
 	light.position.y = camera.position.y - 300;
 	light.lookAt(scene.position);

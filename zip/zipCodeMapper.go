@@ -49,7 +49,7 @@ func (z *ZipCodeMapper) putdata(ch chan ZipCodeEntry, t time.Time) {
 		_, ok := z.ZipCodeMap[entry.Country] 
 		if ok {
 			if _, zipExists := z.ZipCodeMap[entry.Country][entry.ZipCode]; zipExists {
-				oldEntry := z.ZipCodeMap[entry.Country][entry.ZipCode].AddCity(entry.City)
+				oldEntry := z.ZipCodeMap[entry.Country][entry.ZipCode].AddCity(entry)
 				z.ZipCodeMap[entry.Country][entry.ZipCode] = oldEntry
 			} else {
 				z.ZipCodeMap[entry.Country][entry.ZipCode] = entry

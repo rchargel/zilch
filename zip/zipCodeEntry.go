@@ -111,15 +111,23 @@ func EntriesToJson(result ZipQueryResult) string {
 	return buf.String()
 }
 
-func (z ZipCodeEntry) AddCity(city string) ZipCodeEntry {
-	acceptableCities := append(z.AcceptableCities, city)
+func (z ZipCodeEntry) AddCity(entry ZipCodeEntry) ZipCodeEntry {
+	acceptableCities := append(z.AcceptableCities, entry.City)
+	state := z.State
+	county := z.County
+	if len(state) == 0 {
+		state = entry.State
+	}
+	if len(county) == 0 {
+		county = entry.County
+	}
 	return ZipCodeEntry { z.ZipCode,
 		z.Type,
 		z.City,
 		acceptableCities,
 		z.UnacceptableCities,
-		z.County,
-		z.State,
+		county,
+		state,
 		z.Country,
 		z.TimeZone,
 		z.AreaCodes,
