@@ -51,26 +51,29 @@ func (z ZipSorter) Less(i, j int) bool {
 	return z[i].ZipCode < z[j].ZipCode
 }
 
-func MarshalEntries(entries []ZipCodeEntry, format string) (string, error) {
+func MarshalEntries(result ZipQueryResult, format string) (string, error) {
 	switch format {
 	case "XML":
-		return EntriesToXml(entries), nil
+		return EntriesToXml(result), nil
 	case "YAML":
-		return EntriesToYaml(entries), nil
+		return EntriesToYaml(result), nil
 	case "JSON":
-		return EntriesToJson(entries), nil
+		return EntriesToJson(result), nil
 	case "JS":
-		return EntriesToJson(entries), nil
+		return EntriesToJson(result), nil
 	}
 	return "", Throw(fmt.Sprintf("Invalid format: %s", format))
 }
 
-func EntriesToXml(entries []ZipCodeEntry) string {
+func EntriesToXml(result ZipQueryResult) string {
 	buf := bytes.Buffer{}
 	buf.WriteString("<Response>")
-	buf.WriteString("<Total>"+fmt.Sprintf("%v", len(entries))+"</Total>")
+	buf.WriteString("<Total>"+fmt.Sprintf("%v", result.Results)+"</Total>")
+	buf.WriteString("<Start>"+fmt.Sprintf("%v", result.StartIndex)+"</Start>")
+	buf.WriteString("<End>"+fmt.Sprintf("%v", result.EndIndex)+"</End>")
+	buf.WriteString("<Matching>"+fmt.Sprintf("%v", result.Found)+"</Matching>")
 	buf.WriteString("<ZipCodeEntries>")
-	for _, entry := range entries {
+	for _, entry := range result.Entries {
 		buf.WriteString(entry.ToXml())
 	}
 	buf.WriteString("</ZipCodeEntries>")
@@ -78,24 +81,30 @@ func EntriesToXml(entries []ZipCodeEntry) string {
 	return buf.String()
 }
 
-func EntriesToYaml(entries []ZipCodeEntry) string {
+func EntriesToYaml(result ZipQueryResult) string {
 	buf := bytes.Buffer{}
-	buf.WriteString(fmt.Sprintf("Total: %v\n\n",len(entries)))
+	buf.WriteString(fmt.Sprintf("Total: %v\n",result.Results))
+	buf.WriteString(fmt.Sprintf("Start: %v\n",result.StartIndex))
+	buf.WriteString(fmt.Sprintf("End: %v\n",result.EndIndex))
+	buf.WriteString(fmt.Sprintf("Matching: %v\n\n",result.Found))
 	buf.WriteString("ZipCodeEntries:\n")
 
-	for _, entry := range entries {
+	for _, entry := range result.Entries {
 		buf.WriteString(entry.ToYaml())
 	}
 	return buf.String()
 }
 
-func EntriesToJson(entries []ZipCodeEntry) string {
+func EntriesToJson(result ZipQueryResult) string {
 	buf := bytes.Buffer{}
-	buf.WriteString("{\"Total\":")
-	buf.WriteString(fmt.Sprintf("%v",len(entries)))
-	buf.WriteString(",\"ZipCodeEntries\":")
+	buf.WriteString("{")
+	buf.WriteString(fmt.Sprintf("\"Total\":%v,", result.Results))
+	buf.WriteString(fmt.Sprintf("\"Start\":%v,", result.StartIndex))
+	buf.WriteString(fmt.Sprintf("\"End\":%v,", result.EndIndex))
+	buf.WriteString(fmt.Sprintf("\"Matching\":%v,", result.Found))
+	buf.WriteString("\"ZipCodeEntries\":")
 	enc := json.NewEncoder(&buf)
-	if err := enc.Encode(&entries); err != nil {
+	if err := enc.Encode(result.Entries); err != nil {
 		fmt.Println("Error:", err)
 	}
 	buf.WriteString("}")

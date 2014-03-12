@@ -13,6 +13,8 @@ func StartServer(port string) {
         web.Get("/lookup/areaCode/(.*)", zc.LookupAreaCode)
         web.Get("/query\\.?(.*)", zc.QueryReq)
         web.Post("/query\\.?(.*)", zc.QueryReq)
+	web.Get("/distribution.json", zc.DistributionMap)
+	web.Get("/distribution.js", zc.DistributionMap)
 	web.Get("/countries.json", zc.ListCountries)
 	web.Get("/countries.js", zc.ListCountries)
         web.Get("/map.png", zc.RenderMap)

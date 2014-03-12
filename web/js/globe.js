@@ -32,11 +32,13 @@ var light = new THREE.DirectionalLight(0x5555ff, 3.5, 500);
 // we wait until the document is loaded before loading the
 // density data.
 $(document).ready(function()  {
-	addLights();
-	addEarth();
-	addClouds();
-	addDistribution();
-	render();
+	jQuery.get('/distribution.js', function(data) {
+		addLights();
+		addEarth();
+		addClouds();
+		addDistribution(data);
+		render();
+	});
 });
 
 function addEarth() {
@@ -55,23 +57,42 @@ function addLights() {
 	light.position.set(POS_X,POS_Y,POS_Z);
 }
 
-function addDistribution() {
-	var spGeo = new THREE.SphereGeometry(600,50,50);
-	var cloudsTexture = THREE.ImageUtils.loadTexture("/map_transparent.png");
-	var materialClouds = new THREE.MeshPhongMaterial( { color: 0xffffff, map: cloudsTexture, transparent:true, opacity: 1 } );
+function latLongToVector3(lat, lon, radius, heigth) {
+	var phi = (lat)*Math.PI/180;
+	var theta = (lon-180)*Math.PI/180;
+ 
+	var x = -(radius+heigth) * Math.cos(phi) * Math.cos(theta);
+	var y = (radius+heigth) * Math.sin(phi);
+	var z = (radius+heigth) * Math.cos(phi) * Math.sin(theta);
+ 
+	return new THREE.Vector3(x,y,z);
+}
 
-	meshClouds = new THREE.Mesh( spGeo, materialClouds );
-	meshClouds.scale.set( 1.015, 1.015, 1.015 );
-	scene.add( meshClouds );
+function addDistribution(data) {
+	var geom = new THREE.Geometry();
+	var cubeMat = new THREE.MeshLambertMaterial({color: 0x000000, opacity: 0.7, emissive: 0xeeeeff });
+	for (var i = 0; i < data.length; i++) {
+		var entry = data[i];
+		var px = entry.Longitude;
+		var py = entry.Latitude;
+		var value = entry.ZipCodes / 12;
+		var position = latLongToVector3(py,px,600,3);
+		var cube = new THREE.Mesh(new THREE.CubeGeometry(5,5,1+value,1,1,1,cubeMat));
+		cube.position = position;
+		cube.lookAt(new THREE.Vector3(0,0,0));
+		THREE.GeometryUtils.merge(geom, cube);
+	}
+	var total = new THREE.Mesh(geom, cubeMat);
+	scene.add(total);
 }
 
 function addClouds() {
 	var spGeo = new THREE.SphereGeometry(600,50,50);
 	var cloudsTexture = THREE.ImageUtils.loadTexture( "/images/earth_clouds_1024.png" );
-	var materialClouds = new THREE.MeshPhongMaterial( { color: 0xffffff, map: cloudsTexture, transparent:true, opacity:0.3 } );
+	var materialClouds = new THREE.MeshPhongMaterial( { color: 0xffffff, map: cloudsTexture, transparent:true, opacity: 0.1 } );
 
 	meshClouds = new THREE.Mesh( spGeo, materialClouds );
-	meshClouds.scale.set( 1.005, 1.005, 1.005 );
+	meshClouds.scale.set( 1.015, 1.015, 1.015 );
 	scene.add( meshClouds );
 }
 
