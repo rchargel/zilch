@@ -1,22 +1,22 @@
 package zip
 
 import (
-	"fmt"
-	"strings"
-	"bytes"
 	"bufio"
+	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"github.com/hoisie/web"
+	"strings"
 )
 
 type ZipCodeController struct {
 	zipCodeMapper *ZipCodeMapper
 }
 
-type ErrorString string 
+type ErrorString string
 
-type UrlRequest string 
+type UrlRequest string
 
 func (e ErrorString) Error() string {
 	return string(e)
@@ -42,7 +42,9 @@ func AcceptGzip(ctx *web.Context) bool {
 
 func WriteResponse(ctx *web.Context, resp string, format string) {
 	callback := GetCallback(ctx)
-	if format == "JS" { format = "JSON" }
+	if format == "JS" {
+		format = "JSON"
+	}
 	if len(callback) != 0 {
 		format = "JS"
 	}
@@ -56,7 +58,7 @@ func WriteResponse(ctx *web.Context, resp string, format string) {
 	case "JS":
 		ctx.ResponseWriter.Header().Set("Content-type", "application/javascript; charset=utf-8")
 		resp = callback + "(" + resp + ");"
-	} 
+	}
 	if len(resp) > 10 && AcceptGzip(ctx) {
 		ctx.ResponseWriter.Header().Set("Content-encoding", "gzip")
 		gzw := gzip.NewWriter(ctx.ResponseWriter)
@@ -82,10 +84,10 @@ func (r UrlRequest) GetValue() string {
 	return s
 }
 
-func(r UrlRequest) GetFormat() string {
+func (r UrlRequest) GetFormat() string {
 	s := strings.ToUpper(string(r))
 	if idx := strings.Index(s, "."); idx >= 0 {
-		return s[idx + 1:]
+		return s[idx+1:]
 	}
 	return "JSON"
 }
@@ -105,7 +107,7 @@ func (c ZipCodeController) DistributionMap(ctx *web.Context) {
 		content = callback + "(" + content + ");"
 	}
 	if AcceptGzip(ctx) {
- 		ctx.ResponseWriter.Header().Set("Content-encoding", "gzip")
+		ctx.ResponseWriter.Header().Set("Content-encoding", "gzip")
 		gzw := gzip.NewWriter(ctx.ResponseWriter)
 		bw := bufio.NewWriter(gzw)
 		bw.WriteString(content)
@@ -120,9 +122,9 @@ func (c ZipCodeController) DistributionMap(ctx *web.Context) {
 func (c ZipCodeController) ListCountries(ctx *web.Context) {
 	m := make(map[string]int)
 	for country, cmap := range c.zipCodeMapper.ZipCodeMap {
-		m[country] = len(cmap)	
+		m[country] = len(cmap)
 	}
-	
+
 	w := &bytes.Buffer{}
 	e := json.NewEncoder(w)
 	e.Encode(m)
@@ -136,7 +138,7 @@ func (c ZipCodeController) ListCountries(ctx *web.Context) {
 		content = callback + "(" + content + ");"
 	}
 	if AcceptGzip(ctx) {
- 		ctx.ResponseWriter.Header().Set("Content-encoding", "gzip")
+		ctx.ResponseWriter.Header().Set("Content-encoding", "gzip")
 		gzw := gzip.NewWriter(ctx.ResponseWriter)
 		bw := bufio.NewWriter(gzw)
 		bw.WriteString(content)
@@ -186,7 +188,7 @@ func (c ZipCodeController) query(ctx *web.Context, params map[string]string, for
 		return
 	}
 	WriteResponse(ctx, content, format)
-} 
+}
 
 func (c ZipCodeController) RenderMap(ctx *web.Context) {
 	ctx.ResponseWriter.Header().Set("Content-type", "image/png")

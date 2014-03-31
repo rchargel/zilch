@@ -1,17 +1,17 @@
 package zip
 
 import (
-	"os"
-	"io"
-	"fmt"
-	"strings"
-	"strconv"
 	"encoding/csv"
+	"fmt"
+	"io"
+	"os"
+	"strconv"
+	"strings"
 )
 
 type ZipReader struct {
 	Path string
-} 
+}
 
 func getValue(record []string, columns map[string]int, colName, defVal string) string {
 	if idx, ok := columns[colName]; ok {
@@ -21,12 +21,12 @@ func getValue(record []string, columns map[string]int, colName, defVal string) s
 	}
 }
 
-func (r ZipReader) Read (ch chan ZipCodeEntry) {
-	fmt.Println("Reading init file:",r.Path)
+func (r ZipReader) Read(ch chan ZipCodeEntry) {
+	fmt.Println("Reading init file:", r.Path)
 	file, err := os.Open(r.Path)
 	count := uint32(0)
 	if err != nil {
-		fmt.Println("Error:",err)
+		fmt.Println("Error:", err)
 		close(ch)
 		return
 	}
@@ -39,7 +39,7 @@ func (r ZipReader) Read (ch chan ZipCodeEntry) {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			fmt.Println("Error:",err)
+			fmt.Println("Error:", err)
 			break
 		}
 		if len(columns) == 0 {
@@ -57,9 +57,9 @@ func (r ZipReader) Read (ch chan ZipCodeEntry) {
 				if err != nil {
 					longitude = 0
 				}
-				acceptableCities := make([] string, 0)
-				unacceptableCities := make([] string, 0)
-				areaCodes := make([] string, 0)
+				acceptableCities := make([]string, 0)
+				unacceptableCities := make([]string, 0)
+				areaCodes := make([]string, 0)
 				if len(getValue(record, columns, "acceptable_cities", "")) > 0 {
 					acceptableCities = strings.Split(getValue(record, columns, "acceptable_cities", ""), ", ")
 				}
@@ -82,18 +82,18 @@ func (r ZipReader) Read (ch chan ZipCodeEntry) {
 					city = cityList[0]
 					acceptableCities = cityList[1:]
 				}
-				ch <- ZipCodeEntry { getValue(record, columns, "zip", ""), 	// Zip Code
-					getValue(record, columns, "type", "STANDARD"),		// Type
-					city, 							// City
-					acceptableCities,					// Acceptable Cities
-					unacceptableCities,					// Unacceptable Cities
-					getValue(record, columns, "county", ""),		// County
-					getValue(record, columns, "state", ""),			// State
-					getValue(record, columns, "country", ""),		// Country
-					getValue(record, columns, "timezone", ""),		// TimeZone
-					areaCodes,						// Area Codes
-					latitude,						// Latitude
-					longitude }						// Longitude
+				ch <- ZipCodeEntry{getValue(record, columns, "zip", ""), // Zip Code
+					getValue(record, columns, "type", "STANDARD"), // Type
+					city,                                      // City
+					acceptableCities,                          // Acceptable Cities
+					unacceptableCities,                        // Unacceptable Cities
+					getValue(record, columns, "county", ""),   // County
+					getValue(record, columns, "state", ""),    // State
+					getValue(record, columns, "country", ""),  // Country
+					getValue(record, columns, "timezone", ""), // TimeZone
+					areaCodes, // Area Codes
+					latitude,  // Latitude
+					longitude} // Longitude
 				count = count + 1
 			}
 		}

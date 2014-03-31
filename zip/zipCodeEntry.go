@@ -2,25 +2,25 @@ package zip
 
 import (
 	"bytes"
-	"fmt"
-	"strings"
-	"reflect"
 	"encoding/json"
+	"fmt"
+	"reflect"
+	"strings"
 )
 
 type ZipCodeEntry struct {
-	ZipCode string
-	Type string
-	City string
-	AcceptableCities []string
+	ZipCode            string
+	Type               string
+	City               string
+	AcceptableCities   []string
 	UnacceptableCities []string
-	County string
-	State string
-	Country string
-	TimeZone string
-	AreaCodes []string
-	Latitude float64
-	Longitude float64
+	County             string
+	State              string
+	Country            string
+	TimeZone           string
+	AreaCodes          []string
+	Latitude           float64
+	Longitude          float64
 }
 
 type ZipSorter []ZipCodeEntry
@@ -30,7 +30,7 @@ func (z ZipSorter) Len() int {
 }
 
 func (z ZipSorter) Swap(i, j int) {
-	z[i], z[j] = z[j], z[i] 
+	z[i], z[j] = z[j], z[i]
 }
 
 func (z ZipSorter) Less(i, j int) bool {
@@ -68,10 +68,10 @@ func MarshalEntries(result ZipQueryResult, format string) (string, error) {
 func EntriesToXml(result ZipQueryResult) string {
 	buf := bytes.Buffer{}
 	buf.WriteString("<Response>")
-	buf.WriteString("<Total>"+fmt.Sprintf("%v", result.Results)+"</Total>")
-	buf.WriteString("<Start>"+fmt.Sprintf("%v", result.StartIndex)+"</Start>")
-	buf.WriteString("<End>"+fmt.Sprintf("%v", result.EndIndex)+"</End>")
-	buf.WriteString("<Matching>"+fmt.Sprintf("%v", result.Found)+"</Matching>")
+	buf.WriteString("<Total>" + fmt.Sprintf("%v", result.Results) + "</Total>")
+	buf.WriteString("<Start>" + fmt.Sprintf("%v", result.StartIndex) + "</Start>")
+	buf.WriteString("<End>" + fmt.Sprintf("%v", result.EndIndex) + "</End>")
+	buf.WriteString("<Matching>" + fmt.Sprintf("%v", result.Found) + "</Matching>")
 	buf.WriteString("<ZipCodeEntries>")
 	for _, entry := range result.Entries {
 		buf.WriteString(entry.ToXml())
@@ -83,10 +83,10 @@ func EntriesToXml(result ZipQueryResult) string {
 
 func EntriesToYaml(result ZipQueryResult) string {
 	buf := bytes.Buffer{}
-	buf.WriteString(fmt.Sprintf("Total: %v\n",result.Results))
-	buf.WriteString(fmt.Sprintf("Start: %v\n",result.StartIndex))
-	buf.WriteString(fmt.Sprintf("End: %v\n",result.EndIndex))
-	buf.WriteString(fmt.Sprintf("Matching: %v\n\n",result.Found))
+	buf.WriteString(fmt.Sprintf("Total: %v\n", result.Results))
+	buf.WriteString(fmt.Sprintf("Start: %v\n", result.StartIndex))
+	buf.WriteString(fmt.Sprintf("End: %v\n", result.EndIndex))
+	buf.WriteString(fmt.Sprintf("Matching: %v\n\n", result.Found))
 	buf.WriteString("ZipCodeEntries:\n")
 
 	for _, entry := range result.Entries {
@@ -121,7 +121,7 @@ func (z ZipCodeEntry) AddCity(entry ZipCodeEntry) ZipCodeEntry {
 	if len(county) == 0 {
 		county = entry.County
 	}
-	return ZipCodeEntry { z.ZipCode,
+	return ZipCodeEntry{z.ZipCode,
 		z.Type,
 		z.City,
 		acceptableCities,
@@ -132,7 +132,7 @@ func (z ZipCodeEntry) AddCity(entry ZipCodeEntry) ZipCodeEntry {
 		z.TimeZone,
 		z.AreaCodes,
 		z.Latitude,
-		z.Longitude }
+		z.Longitude}
 }
 
 func (z ZipCodeEntry) Marshal(format string) (string, error) {
@@ -169,7 +169,7 @@ func (z ZipCodeEntry) ToXml() string {
 	if len(z.AcceptableCities) > 0 {
 		buf.WriteString("<AcceptableCities>")
 		for _, city := range z.AcceptableCities {
-			buf.WriteString("<City>"+strtoxml(city)+"</City>")
+			buf.WriteString("<City>" + strtoxml(city) + "</City>")
 		}
 		buf.WriteString("</AcceptableCities>")
 	} else {
@@ -178,7 +178,7 @@ func (z ZipCodeEntry) ToXml() string {
 	if len(z.UnacceptableCities) > 0 {
 		buf.WriteString("<UnacceptableCities>")
 		for _, city := range z.UnacceptableCities {
-			buf.WriteString("<City>"+strtoxml(city)+"</City>")
+			buf.WriteString("<City>" + strtoxml(city) + "</City>")
 		}
 		buf.WriteString("</UnacceptableCities>")
 	} else {
@@ -191,7 +191,7 @@ func (z ZipCodeEntry) ToXml() string {
 	if len(z.AreaCodes) > 0 {
 		buf.WriteString("<AreaCodes>")
 		for _, areaCode := range z.AreaCodes {
-			buf.WriteString("<AreaCode>"+areaCode+"</AreaCode>")
+			buf.WriteString("<AreaCode>" + areaCode + "</AreaCode>")
 		}
 		buf.WriteString("</AreaCodes>")
 	} else {
@@ -211,13 +211,15 @@ func (z ZipCodeEntry) ToYaml() string {
 		typeField := val.Type().Field(i)
 		f := valField.Interface()
 		val := reflect.ValueOf(f)
-		if i == 0 { 
-			buf.WriteString("  - ") 
-		} else { 
-			buf.WriteString("    ") 
+		if i == 0 {
+			buf.WriteString("  - ")
+		} else {
+			buf.WriteString("    ")
 		}
 		buf.WriteString(fmt.Sprintf("%s:", typeField.Name))
-		for j := 0; j < (20 - len(typeField.Name)); j++ { buf.WriteString(" ") }
+		for j := 0; j < (20 - len(typeField.Name)); j++ {
+			buf.WriteString(" ")
+		}
 		switch val.Kind() {
 		case reflect.String:
 			buf.WriteString(val.String())
@@ -226,7 +228,9 @@ func (z ZipCodeEntry) ToYaml() string {
 		case reflect.Slice:
 			buf.WriteString("[")
 			for j := 0; j < val.Len(); j++ {
-				if j != 0 { buf.WriteString(", ") }
+				if j != 0 {
+					buf.WriteString(", ")
+				}
 				buf.WriteString(fmt.Sprintf("%s", val.Index(j)))
 			}
 			buf.WriteString("]")
@@ -241,7 +245,7 @@ func (z ZipCodeEntry) ToJson() string {
 	buf := bytes.Buffer{}
 	enc := json.NewEncoder(&buf)
 	if err := enc.Encode(&z); err != nil {
-		fmt.Println("Error:",err)
+		fmt.Println("Error:", err)
 	}
 	return buf.String()
 }

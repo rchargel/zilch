@@ -1,35 +1,35 @@
 package zip
 
 import (
-	"strconv"
-	"time"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type QueryResult struct {
 	entry ZipCodeEntry
 	error string
-} 
+}
 
 type DistributionResult struct {
-	Latitude int16
+	Latitude  int16
 	Longitude int16
-	ZipCodes uint32
+	ZipCodes  uint32
 }
 
 type ZipCodeMapper struct {
 	ZipCodeMap map[string]map[string]ZipCodeEntry
-	Dist map[int64]DistributionResult
+	Dist       map[int64]DistributionResult
 }
 
 type ZipQueryResult struct {
-	Entries []ZipCodeEntry
-	Results int
-	Found int
+	Entries    []ZipCodeEntry
+	Results    int
+	Found      int
 	StartIndex int
-	EndIndex int
+	EndIndex   int
 }
 
 func (d DistributionResult) incr() DistributionResult {
@@ -37,7 +37,7 @@ func (d DistributionResult) incr() DistributionResult {
 }
 
 func NewZipCodeMapper() *ZipCodeMapper {
-	mapper := &ZipCodeMapper{ make(map[string]map[string]ZipCodeEntry), make(map[int64]DistributionResult) }
+	mapper := &ZipCodeMapper{make(map[string]map[string]ZipCodeEntry), make(map[int64]DistributionResult)}
 	mapper.Init()
 	return mapper
 }
@@ -46,7 +46,7 @@ func (z *ZipCodeMapper) putdata(ch chan ZipCodeEntry, t time.Time) {
 	count := uint32(0)
 	for entry := range ch {
 		distKey := (int64(entry.Latitude) * int64(360)) + int64(entry.Longitude)
-		_, ok := z.ZipCodeMap[entry.Country] 
+		_, ok := z.ZipCodeMap[entry.Country]
 		if ok {
 			if _, zipExists := z.ZipCodeMap[entry.Country][entry.ZipCode]; zipExists {
 				oldEntry := z.ZipCodeMap[entry.Country][entry.ZipCode].AddCity(entry)
@@ -71,10 +71,10 @@ func (z *ZipCodeMapper) putdata(ch chan ZipCodeEntry, t time.Time) {
 			}
 		}
 	}
-	delete(z.Dist,int64(0))
+	delete(z.Dist, int64(0))
 	fmt.Printf("Stored %v records in database\n", count)
 	end := time.Now()
-	fmt.Printf("Data loaded in %v seconds\n",end.Sub(t))
+	fmt.Printf("Data loaded in %v seconds\n", end.Sub(t))
 }
 
 func (z *ZipCodeMapper) Init() {
@@ -91,7 +91,7 @@ func QueryMap(data map[string]ZipCodeEntry, params map[string]string, ch chan Qu
 		ch <- QueryResult{ZipCodeEntry{}, "EOL"}
 		return
 	}
-	bounds := make([]float64,4)
+	bounds := make([]float64, 4)
 	boundString, boundOk := params["Bounds"]
 	if boundOk {
 		b := strings.Split(boundString, ",")
@@ -99,7 +99,7 @@ func QueryMap(data map[string]ZipCodeEntry, params map[string]string, ch chan Qu
 			boundOk = false
 		} else {
 			for i, bString := range b {
-				f, err := strconv.ParseFloat(bString, 64)	
+				f, err := strconv.ParseFloat(bString, 64)
 				if err != nil {
 					boundOk = false
 					break
@@ -139,7 +139,9 @@ func QueryMap(data map[string]ZipCodeEntry, params map[string]string, ch chan Qu
 			}
 		}
 		if boundOk {
-			if entry.Latitude == 0 && entry.Longitude == 0 { continue }
+			if entry.Latitude == 0 && entry.Longitude == 0 {
+				continue
+			}
 			if entry.Latitude > bounds[0] || entry.Latitude < bounds[2] || entry.Longitude < bounds[1] || entry.Longitude > bounds[3] {
 				continue
 			}
@@ -184,10 +186,10 @@ func QueryMap(data map[string]ZipCodeEntry, params map[string]string, ch chan Qu
 }
 
 func equalsIgnoreCase(expected, test string) bool {
-	return strings.Index(strings.ToLower(test),expected) >= 0
+	return strings.Index(strings.ToLower(test), expected) >= 0
 }
 
-func (z *ZipCodeMapper) DistributionMap() ([]DistributionResult) {
+func (z *ZipCodeMapper) DistributionMap() []DistributionResult {
 	results := make([]DistributionResult, len(z.Dist))
 	i := 0
 	for _, d := range z.Dist {
@@ -202,7 +204,7 @@ func (z *ZipCodeMapper) Query(params map[string]string) (ZipQueryResult, error) 
 	country, cfound := params["Country"]
 	countries := 0
 	entries := make([]ZipCodeEntry, 0, 100)
-	if (cfound) {
+	if cfound {
 		if data, ok := z.ZipCodeMap[country]; ok {
 			go QueryMap(data, params, ch)
 			countries = 1
@@ -248,5 +250,5 @@ func (z *ZipCodeMapper) Query(params map[string]string) (ZipQueryResult, error) 
 		}
 		entries = entries[start:end]
 	}
-	return ZipQueryResult{Entries: entries, Results: len(entries), Found: total, StartIndex: start+1, EndIndex: end}, nil
+	return ZipQueryResult{Entries: entries, Results: len(entries), Found: total, StartIndex: start + 1, EndIndex: end}, nil
 }
