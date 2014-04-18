@@ -85,7 +85,7 @@ func (d *Database) finishDistributionChannels(distChannel chan map[uint32]int, t
 		channels += 1
 
 		for key, total := range distMap {
-			// key == 180090 = middle equater meets prime meridian, not a real place
+			// key == 180090 = where equater meets prime meridian, not a real place
 			if key != 180090 {
 				lat, lon := GetLatitudeLongitudeFromKey(key)
 				if _, found := d.DistributionMap[key]; !found {
@@ -129,3 +129,5 @@ func (d *Database) GetDistributions() []DistributionEntry {
 	sort.Sort(DistributionSorter(entries))
 	return entries
 }
+
+//func (d *Database) ExecQuery(queryParams map[string]string)

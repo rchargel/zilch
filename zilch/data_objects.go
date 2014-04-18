@@ -23,6 +23,14 @@ type ZilchEntry struct {
 	Longitude          float32
 }
 
+type QueryResult struct {
+	ResultsReturned int
+	TotalFound      int
+	StartIndex      int
+	EndIndex        int
+	ZipCodeEntries  []ZilchEntry
+}
+
 type ZilchSorter []ZilchEntry
 
 func (z ZilchEntry) GetKey() uint32 {
