@@ -53,3 +53,27 @@ func Test_GetKey(t *testing.T) {
 	testNumbers(float32(-25.34), float32(145.89), uint32(325064))
 	testNumbers(float32(-25.99), float32(145.01), uint32(325064))
 }
+
+func Test_GetLatitudeAndLongitudeFromKey(t *testing.T) {
+	testNumbers := func(expectedLat, expectedLon int16, key uint32) {
+		lat, lon := GetLatitudeLongitudeFromKey(key)
+
+		if lat != expectedLat || lon != expectedLon {
+			t.Errorf("The key %v produced lat: %v / long: %v, but should have been lat: %v / long: %v\n", key, lat, lon, expectedLat, expectedLon)
+		} else {
+			t.Logf("The key %v produced lat: %v / long: %v, as expected\n", key, lat, lon)
+		}
+	}
+
+	testNumbers(int16(-90), int16(-180), uint32(0))
+	testNumbers(int16(0), int16(-180), uint32(90))
+	testNumbers(int16(90), int16(-180), uint32(180))
+	testNumbers(int16(-90), int16(0), uint32(180000))
+	testNumbers(int16(-90), int16(180), uint32(360000))
+	testNumbers(int16(0), int16(0), uint32(180090))
+	testNumbers(int16(90), int16(180), uint32(360180))
+	testNumbers(int16(-1), int16(-1), uint32(179089))
+	testNumbers(int16(0), int16(0), uint32(180090))
+	testNumbers(int16(38), int16(-78), uint32(102128))
+	testNumbers(int16(-26), int16(145), uint32(325064))
+}

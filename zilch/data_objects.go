@@ -32,3 +32,10 @@ func (z ZilchEntry) GetKey() uint32 {
 func (z ZilchSorter) Len() int           { return len(z) }
 func (z ZilchSorter) Swap(i, j int)      { z[i], z[j] = z[j], z[i] }
 func (z ZilchSorter) Less(i, j int) bool { return z[i].ZipCode < z[j].ZipCode }
+
+func GetLatitudeLongitudeFromKey(key uint32) (int16, int16) {
+	longitude := int16((key / 1000) - 180)
+	latitude := int16((key % 1000) - 90)
+
+	return latitude, longitude
+}
