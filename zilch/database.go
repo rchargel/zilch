@@ -3,6 +3,8 @@ package zilch
 import (
 	"fmt"
 	"io/ioutil"
+	"sort"
+	"time"
 )
 
 type CountryIndex struct {
@@ -17,6 +19,7 @@ type Database struct {
 }
 
 func NewDatabase(filedir string) (*Database, error) {
+	start := time.Now()
 	d := &Database{
 		CountryIndexMap: make(map[string]CountryIndex),
 		DistributionMap: make(map[uint32]DistributionEntry),
@@ -35,7 +38,12 @@ func NewDatabase(filedir string) (*Database, error) {
 	channels := 0
 
 	for _, file := range files {
-		filepath := filedir + file.Name()
+		var filepath string
+		if filedir[len(filedir):] != "/" {
+			filepath = filedir + "/" + file.Name()
+		} else {
+			filepath = filedir + file.Name()
+		}
 		reader := CreateReader(filepath)
 		readerChan := make(chan ZilchEntry, 20)
 		channelMap[reader.CountryCode] = readerChan
@@ -44,7 +52,7 @@ func NewDatabase(filedir string) (*Database, error) {
 		channels += 1
 	}
 
-	go d.finishDistributionChannels(distributionChannel, channels)
+	go d.finishDistributionChannels(distributionChannel, channels, start)
 
 	return d, nil
 }
@@ -66,19 +74,34 @@ func (d *Database) loadCountryData(countryCode string, channel chan ZilchEntry, 
 	distChannel <- distMap
 }
 
-func (d *Database) finishDistributionChannels(distChannel chan map[uint32]int, totalChannels int) {
+func (d *Database) IsFullyLoaded() bool {
+	return d.FullyLoaded
+}
+
+func (d *Database) finishDistributionChannels(distChannel chan map[uint32]int, totalChannels int, startTime time.Time) {
 	channels := 0
 
 	for distMap := range distChannel {
 		channels += 1
 
 		for key, total := range distMap {
-			if _, found := d.DistributionMap[key]; !found {
+			// key == 180090 = middle equater meets prime meridian, not a real place
+			if key != 180090 {
 				lat, lon := GetLatitudeLongitudeFromKey(key)
-				d.DistributionMap[key] = DistributionEntry{
-					Latitude:  lat,
-					Longitude: lon,
-					ZipCodes:  uint32(total),
+				if _, found := d.DistributionMap[key]; !found {
+					d.DistributionMap[key] = DistributionEntry{
+						Latitude:  lat,
+						Longitude: lon,
+						ZipCodes:  uint32(total),
+					}
+				} else {
+					zipCodes := d.DistributionMap[key].ZipCodes + uint32(total)
+
+					d.DistributionMap[key] = DistributionEntry{
+						Latitude:  lat,
+						Longitude: lon,
+						ZipCodes:  uint32(zipCodes),
+					}
 				}
 			}
 		}
@@ -89,5 +112,20 @@ func (d *Database) finishDistributionChannels(distChannel chan map[uint32]int, t
 	}
 
 	d.FullyLoaded = true
-	fmt.Println("Finished reading database")
+
+	ellapsedTime := time.Since(startTime)
+	fmt.Printf("Finished reading database in %s.\n", ellapsedTime)
+}
+
+func (d *Database) GetDistributions() []DistributionEntry {
+	entries := make([]DistributionEntry, len(d.DistributionMap))
+	idx := 0
+
+	for _, entry := range d.DistributionMap {
+		entries[idx] = entry
+		idx += 1
+	}
+
+	sort.Sort(DistributionSorter(entries))
+	return entries
 }

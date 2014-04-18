@@ -6,6 +6,8 @@ type DistributionEntry struct {
 	ZipCodes  uint32
 }
 
+type DistributionSorter []DistributionEntry
+
 type ZilchEntry struct {
 	ZipCode            string
 	Type               string
@@ -24,14 +26,22 @@ type ZilchEntry struct {
 type ZilchSorter []ZilchEntry
 
 func (z ZilchEntry) GetKey() uint32 {
-	lon := uint32(z.Longitude + 180)
-	lat := uint32(z.Latitude + 90)
-	return (lon * uint32(1000)) + lat
+	return GetKeyFromLatitudeLongitude(z.Latitude, z.Longitude)
 }
 
 func (z ZilchSorter) Len() int           { return len(z) }
 func (z ZilchSorter) Swap(i, j int)      { z[i], z[j] = z[j], z[i] }
 func (z ZilchSorter) Less(i, j int) bool { return z[i].ZipCode < z[j].ZipCode }
+
+func (d DistributionSorter) Len() int           { return len(d) }
+func (d DistributionSorter) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
+func (d DistributionSorter) Less(i, j int) bool { return d[i].ZipCodes > d[j].ZipCodes }
+
+func GetKeyFromLatitudeLongitude(latitude, longitude float32) uint32 {
+	lon := uint32(longitude + 180)
+	lat := uint32(latitude + 90)
+	return (lon * uint32(1000)) + lat
+}
 
 func GetLatitudeLongitudeFromKey(key uint32) (int16, int16) {
 	longitude := int16((key / 1000) - 180)
