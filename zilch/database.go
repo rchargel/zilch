@@ -1,10 +1,17 @@
 package zilch
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"sort"
+	"strconv"
+	"strings"
 	"time"
+)
+
+const (
+	max_entries int = 200
 )
 
 type CountryIndex struct {
@@ -130,4 +137,199 @@ func (d *Database) GetDistributions() []DistributionEntry {
 	return entries
 }
 
-//func (d *Database) ExecQuery(queryParams map[string]string)
+func (d *Database) ExecQuery(queryParams map[string]string) (QueryResult, error) {
+	if len(queryParams) == 0 {
+		return QueryResult{}, errors.New("There are no query parameters")
+	}
+	var entries []ZilchEntry
+	var err error
+	if country, found := queryParams["Country"]; found {
+		entries, err = d.querySingleCountry(country, queryParams)
+	} else {
+		entries, err = d.queryAllCountries(queryParams)
+	}
+	if err != nil {
+		return QueryResult{}, err
+	}
+
+	total := len(entries)
+	start := 0
+	end := len(entries)
+	sort.Sort(ZilchSorter(entries))
+	if total > max_entries {
+		start = 0
+		end = max_entries
+		if page, page_found := queryParams["page"]; page_found {
+			if p, perr := strconv.ParseUint(page, 10, 32); perr != nil {
+				return QueryResult{}, perr
+			} else {
+				start = (int(p) - 1) * max_entries
+				end = start + max_entries
+				if start >= total {
+					start = total
+				}
+				if end >= total {
+					end = total
+				}
+			}
+		}
+		entries = entries[start:end]
+	}
+	return QueryResult{
+		ResultsReturned: len(entries),
+		TotalFound:      total,
+		StartIndex:      start + 1,
+		EndIndex:        end,
+		ZipCodeEntries:  entries,
+	}, nil
+}
+
+func (d *Database) querySingleCountry(country string, queryParams map[string]string) ([]ZilchEntry, error) {
+	entries := make([]ZilchEntry, 0, 20)
+	if countryIndex, found := d.CountryIndexMap[country]; found {
+		ch := make(chan ZilchEntry)
+		go countryIndex.QueryIndex(queryParams, ch)
+		for entry := range ch {
+			entries = append(entries, entry)
+		}
+		return entries, nil
+	} else {
+		return entries, errors.New(fmt.Sprintf("No country %s found", country))
+	}
+}
+
+func (d *Database) queryAllCountries(queryParams map[string]string) ([]ZilchEntry, error) {
+	entries := make([]ZilchEntry, 0, 40)
+	totalCountries := len(d.CountryIndexMap)
+	completed := 0
+	ch := make(chan ZilchEntry)
+	for _, countryIndex := range d.CountryIndexMap {
+		go countryIndex.QueryIndexNoClose(queryParams, ch)
+	}
+	for entry := range ch {
+		if entry.Type == "EOL" {
+			completed += 1
+			if completed >= totalCountries {
+				break
+			}
+		} else {
+			entries = append(entries, entry)
+		}
+	}
+	return entries, nil
+}
+
+func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEntry) {
+	string_data := func(paramName string, params map[string]string) (string, bool) {
+		if value, valExists := params[paramName]; valExists {
+			return strings.ToLower(value), true
+		} else {
+			return "", false
+		}
+	}
+	bounds_data := func(params map[string]string) ([]float32, bool) {
+		b := make([]float32, 4)
+		if val, valExists := params["Bounds"]; valExists {
+			ba := strings.Split(val, ",")
+			if len(ba) != 4 {
+				return b, false
+			} else {
+				for i, bastring := range ba {
+					if f, err := strconv.ParseFloat(bastring, 32); err == nil {
+						b[i] = float32(f)
+					} else {
+						return b, false
+					}
+				}
+				return b, true
+			}
+		} else {
+			return b, false
+		}
+	}
+	starts_with := func(expected, actual string) bool {
+		return strings.Index(actual, expected) == 0
+	}
+	contains := func(expected, actual string) bool {
+		return strings.Index(actual, expected) != -1
+	}
+	in_array := func(expected string, actual []string) bool {
+		for _, val := range actual {
+			if strings.Index(strings.ToLower(val), expected) != -1 {
+				return true
+			}
+		}
+		return false
+	}
+	in_bounds := func(bounds []float32, latitude, longitude float32) bool {
+		if latitude == 0 && longitude == 0 {
+			return false
+		}
+		if latitude > bounds[0] || latitude < bounds[2] {
+			return false
+		}
+		if longitude < bounds[1] || longitude > bounds[3] {
+			return false
+		}
+		return true
+	}
+	bounds, boundsTest := bounds_data(queryParams)
+	zipCode, zipCodeTest := string_data("ZipCode", queryParams)
+	city, cityTest := string_data("City", queryParams)
+	areaCode, areaCodeTest := string_data("AreaCode", queryParams)
+	state, stateTest := string_data("State", queryParams)
+	county, countyTest := string_data("County", queryParams)
+
+	for _, entry := range c.Entries {
+		if zipCodeTest {
+			if !starts_with(zipCode, strings.ToLower(entry.ZipCode)) {
+				continue
+			}
+		}
+		if cityTest {
+			if !contains(city, strings.ToLower(entry.City)) {
+				valid := false
+				if len(entry.AcceptableCities) > 0 && in_array(city, entry.AcceptableCities) {
+					valid = true
+				}
+				if len(entry.UnacceptableCities) > 0 && in_array(city, entry.UnacceptableCities) {
+					valid = true
+				}
+				if !valid {
+					continue
+				}
+			}
+		}
+		if areaCodeTest {
+			if !in_array(areaCode, entry.AreaCodes) {
+				continue
+			}
+		}
+		if stateTest {
+			if state != strings.ToLower(entry.State) {
+				continue
+			}
+		}
+		if countyTest {
+			if !contains(county, entry.County) {
+				continue
+			}
+		}
+		if boundsTest {
+			if !in_bounds(bounds, entry.Latitude, entry.Longitude) {
+				continue
+			}
+		}
+		ch <- entry
+	}
+	close(ch)
+}
+
+func (c CountryIndex) QueryIndexNoClose(queryParams map[string]string, ch chan ZilchEntry) {
+	ch2 := make(chan ZilchEntry)
+	go c.QueryIndex(queryParams, ch2)
+	for entry := range ch2 {
+		ch <- entry
+	}
+	ch <- ZilchEntry{Type: "EOL"}
+}

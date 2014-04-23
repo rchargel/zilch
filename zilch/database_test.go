@@ -67,5 +67,46 @@ func Test_DatabaseLoad(t *testing.T) {
 				}
 			}
 		}
+
+		query := map[string]string{
+			"ZipCode": "22151",
+		}
+
+		if queryResult, err := database.ExecQuery(query); err == nil {
+			if queryResult.TotalFound != 1 {
+				t.Errorf("Found more than one entry: %v", queryResult.TotalFound)
+			} else {
+				t.Log("Found " + queryResult.ZipCodeEntries[0].City)
+			}
+		} else {
+			t.Error(err.Error())
+		}
+
+		delete(query, "ZipCode")
+		query["City"] = "Springfield"
+		query["Country"] = "US"
+
+		if queryResult, err := database.ExecQuery(query); err == nil {
+			if queryResult.TotalFound != 128 {
+				t.Errorf("Not 147 entries: %v", queryResult.TotalFound)
+			} else if queryResult.StartIndex != 1 {
+				t.Errorf("Not first entry %v", queryResult.StartIndex)
+			} else if queryResult.EndIndex != 128 {
+				t.Errorf("Not last entry %v", queryResult.EndIndex)
+			} else if queryResult.ResultsReturned != 128 {
+				t.Errorf("Not 147 entries: %v", queryResult.ResultsReturned)
+			} else {
+				entryMap := make(map[string]ZilchEntry)
+				for _, entry := range queryResult.ZipCodeEntries {
+					if mpEntry, found := entryMap[entry.ZipCode]; found {
+						t.Errorf("Found duplicate\n%s\n%s\n", entry, mpEntry)
+					} else {
+						entryMap[entry.ZipCode] = entry
+					}
+				}
+			}
+		} else {
+			t.Error(err.Error())
+		}
 	}
 }
