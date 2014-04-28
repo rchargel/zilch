@@ -18,7 +18,7 @@ type ResponseWriter struct {
 func (writer ResponseWriter) GetQuery() map[string]string {
 	query := make(map[string]string)
 	for key, _ := range writer.ctx.Request.Form {
-		query[key] = writer.ctx.Request.FormValue(k)
+		query[key] = writer.ctx.Request.FormValue(key)
 	}
 	return query
 }
@@ -27,8 +27,8 @@ func (writer ResponseWriter) SendError(err error) {
 	writer.ctx.Abort(500, err.Error())
 }
 
-func (writer ResponseWriter) SendDistributionResponse(distribution []DistributionEntry) {
-	if response, err := writer.marshalDistributionResponse(distribution); err == nil {
+func (writer ResponseWriter) SendStandardResponse(i interface{}) {
+	if response, err := writer.marshalStandardResponse(i); err == nil {
 		writer.compressionFilter(response)
 	} else {
 		writer.SendError(err)
@@ -43,11 +43,11 @@ func (writer ResponseWriter) SendQueryResponse(queryResult QueryResult) {
 	}
 }
 
-func (writer ResponseWriter) marshalDistributionResponse(distribution []DistributionEntry) (string, error) {
+func (writer ResponseWriter) marshalStandardResponse(i interface{}) (string, error) {
 	buf := bytes.Buffer{}
 	enc := json.NewEncoder(&buf)
 
-	if err := enc.Encode(&distribution); err != nil {
+	if err := enc.Encode(&i); err != nil {
 		return "", err
 	} else {
 		response := buf.String()
@@ -63,7 +63,10 @@ func (writer ResponseWriter) marshalDistributionResponse(distribution []Distribu
 }
 
 func (writer ResponseWriter) marshalQueryResponse(queryResult QueryResult) (string, error) {
-	format := strings.ToUpper(writer.format)
+	format := "JSON"
+	if len(writer.format) > 0 {
+		format = strings.ToUpper(writer.format)
+	}
 	response, err := queryResult.Marshal(format)
 
 	if err != nil {

@@ -37,9 +37,14 @@ func (z ZilchEntry) GetKey() uint32 {
 	return GetKeyFromLatitudeLongitude(z.Latitude, z.Longitude)
 }
 
-func (z ZilchSorter) Len() int           { return len(z) }
-func (z ZilchSorter) Swap(i, j int)      { z[i], z[j] = z[j], z[i] }
-func (z ZilchSorter) Less(i, j int) bool { return z[i].ZipCode < z[j].ZipCode }
+func (z ZilchSorter) Len() int      { return len(z) }
+func (z ZilchSorter) Swap(i, j int) { z[i], z[j] = z[j], z[i] }
+func (z ZilchSorter) Less(i, j int) bool {
+	if z[i].Country != z[j].Country {
+		return z[i].Country < z[j].Country
+	}
+	return z[i].ZipCode < z[j].ZipCode
+}
 
 func (d DistributionSorter) Len() int           { return len(d) }
 func (d DistributionSorter) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }

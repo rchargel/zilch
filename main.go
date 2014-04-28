@@ -1,11 +1,16 @@
 package main
 
 import (
+	"fmt"
+	"github.com/rchargel/zilch/zilch"
 	"os"
-	"github.com/rchargel/zilch/zip"
+	"runtime"
 )
 
 func main() {
+	cpus := runtime.NumCPU()
+	runtime.GOMAXPROCS(cpus)
+	fmt.Printf("Running on %v CPU cores,\n", cpus)
 	port := os.Getenv("PORT")
-	zip.StartServer(port)
+	zilch.StartServer("resources", port)
 }
