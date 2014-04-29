@@ -6,7 +6,11 @@ type DistributionEntry struct {
 	ZipCodes  uint32
 }
 
+type DistributionMarshaller []DistributionEntry
+
 type DistributionSorter []DistributionEntry
+
+type CountryMarshaller map[string]int
 
 type ZilchEntry struct {
 	ZipCode            string

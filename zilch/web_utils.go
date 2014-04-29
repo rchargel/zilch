@@ -2,9 +2,7 @@ package zilch
 
 import (
 	"bufio"
-	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"fmt"
 	"github.com/hoisie/web"
 	"strings"
@@ -27,11 +25,57 @@ func (writer ResponseWriter) SendError(err error) {
 	writer.ctx.Abort(500, err.Error())
 }
 
-func (writer ResponseWriter) SendStandardResponse(i interface{}) {
-	if response, err := writer.marshalStandardResponse(i); err == nil {
-		writer.compressionFilter(response)
-	} else {
+func (writer ResponseWriter) SendDistributionResponse(d []DistributionEntry) {
+	format := "JSON"
+	if len(writer.format) > 0 {
+		format = strings.ToUpper(writer.format)
+	}
+	dm := DistributionMarshaller(d)
+	response, err := dm.Marshal(format)
+
+	if err != nil {
 		writer.SendError(err)
+	} else {
+		switch format {
+		case "XML":
+			writer.ctx.ContentType("text/xml; charset=utf-8")
+		default:
+			callback := writer.getJsonpCallback()
+			if len(callback) > 0 {
+				writer.ctx.ContentType("application/javascript; charset=utf-8")
+				response = callback + "(" + response + ");"
+			} else {
+				writer.ctx.ContentType("application/json; charset=utf-8")
+			}
+		}
+		writer.compressionFilter(response)
+	}
+}
+
+func (writer ResponseWriter) SendCountryListResponse(c map[string]int) {
+	format := "JSON"
+	if len(writer.format) > 0 {
+		format = strings.ToUpper(writer.format)
+	}
+	cm := CountryMarshaller(c)
+	response, err := cm.Marshal(format)
+
+	if err != nil {
+		writer.SendError(err)
+	} else {
+		switch format {
+		case "XML":
+			writer.ctx.ContentType("text/xml; charset=utf-8")
+		default:
+			callback := writer.getJsonpCallback()
+			if len(callback) > 0 {
+				writer.ctx.ContentType("application/javascript; charset=utf-8")
+				response = callback + "(" + response + ");"
+			} else {
+				writer.ctx.ContentType("application/json; charset=utf-8")
+			}
+		}
+		writer.compressionFilter(response)
 	}
 }
 
@@ -40,25 +84,6 @@ func (writer ResponseWriter) SendQueryResponse(queryResult QueryResult) {
 		writer.compressionFilter(response)
 	} else {
 		writer.SendError(err)
-	}
-}
-
-func (writer ResponseWriter) marshalStandardResponse(i interface{}) (string, error) {
-	buf := bytes.Buffer{}
-	enc := json.NewEncoder(&buf)
-
-	if err := enc.Encode(&i); err != nil {
-		return "", err
-	} else {
-		response := buf.String()
-		callback := writer.getJsonpCallback()
-		if len(callback) > 0 {
-			writer.ctx.ContentType("application/javascript; charset=utf-8")
-			return callback + "(" + response + ");", nil
-		} else {
-			writer.ctx.ContentType("application/json; charset=utf-8")
-			return response, nil
-		}
 	}
 }
 

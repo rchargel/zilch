@@ -1,7 +1,6 @@
 package zilch
 
 import (
-	"fmt"
 	"github.com/hoisie/web"
 )
 
@@ -18,25 +17,16 @@ func (c ZipCodeController) Query(ctx *web.Context, format string) {
 	}
 }
 
-func (c ZipCodeController) GetDistribution(ctx *web.Context) {
-	writer := ResponseWriter{ctx, "JSON"}
-	writer.SendStandardResponse(c.database.GetDistributions())
+func (c ZipCodeController) GetDistribution(ctx *web.Context, format string) {
+	writer := ResponseWriter{ctx, format}
+	writer.SendDistributionResponse(c.database.GetDistributions())
 }
 
-func (c ZipCodeController) GetCountries(ctx *web.Context) {
-	writer := ResponseWriter{ctx, "JSON"}
-	length := len(c.database.CountryIndexMap)
-	countries := make([]map[string]string, length, length)
-	index := 0
+func (c ZipCodeController) GetCountries(ctx *web.Context, format string) {
+	writer := ResponseWriter{ctx, format}
+	countries := make(map[string]int)
 	for _, entries := range c.database.CountryIndexMap {
-		if index >= length {
-			break
-		}
-		mp := make(map[string]string, 2)
-		mp["CountryCode"] = entries.CountryCode
-		mp["Count"] = fmt.Sprintf("%v", len(entries.Entries))
-		countries[index] = mp
-		index += 1
+		countries[entries.CountryCode] = len(entries.Entries)
 	}
-	writer.SendStandardResponse(countries)
+	writer.SendCountryListResponse(countries)
 }

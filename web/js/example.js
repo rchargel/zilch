@@ -15,6 +15,7 @@ angular.module('zilch', []).controller('ZilchController', function($http, $scope
 	$scope.loadCountries = function() {
 		$http.jsonp('/countries.js?callback=JSON_CALLBACK').success(function(response) {
 			var list = [];
+			console.log(response)
 			for (var country in response) {
 				if (response[country] >= 100) {
 					// there are US military outposts in many countries that are not supported

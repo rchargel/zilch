@@ -3,6 +3,7 @@ package zilch
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"reflect"
@@ -10,6 +11,74 @@ import (
 	"strconv"
 	"strings"
 )
+
+func (d DistributionMarshaller) Marshal(format string) (string, error) {
+	format = strings.ToUpper(format)
+	buf := bytes.Buffer{}
+	switch format {
+	case "JS":
+		enc := json.NewEncoder(&buf)
+		if err := enc.Encode(&d); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	case "JSON":
+		enc := json.NewEncoder(&buf)
+		if err := enc.Encode(&d); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	case "XML":
+		enc := xml.NewEncoder(&buf)
+		if err := enc.Encode(&d); err != nil {
+			return "", err
+		}
+		return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><DistributionList>" + buf.String() + "</DistributionList>", nil
+	case "YAML":
+		buf.WriteString("DistributionEntries:\n")
+		for _, entry := range d {
+			buf.WriteString(fmt.Sprintf("  - ZipCodes:  %v\n", entry.ZipCodes))
+			buf.WriteString(fmt.Sprintf("    Latitude:  %v\n", entry.Latitude))
+			buf.WriteString(fmt.Sprintf("    Longitude: %v\n\n", entry.Longitude))
+		}
+		return buf.String(), nil
+	default:
+		return "", errors.New("Invalid format: " + format)
+	}
+}
+
+func (c CountryMarshaller) Marshal(format string) (string, error) {
+	format = strings.ToUpper(format)
+	buf := bytes.Buffer{}
+	switch format {
+	case "JS":
+		enc := json.NewEncoder(&buf)
+		if err := enc.Encode(&c); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	case "JSON":
+		enc := json.NewEncoder(&buf)
+		if err := enc.Encode(&c); err != nil {
+			return "", err
+		}
+		return buf.String(), nil
+	case "XML":
+		buf.WriteString("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Countries>")
+		for key, val := range map[string]int(c) {
+			buf.WriteString(fmt.Sprintf("<%v>%v</%v>", key, val, key))
+		}
+		buf.WriteString("</Countries>")
+		return buf.String(), nil
+	case "YAML":
+		for key, val := range map[string]int(c) {
+			buf.WriteString(fmt.Sprintf("%v: %v\n", key, val))
+		}
+		return buf.String(), nil
+	default:
+		return "", errors.New("Invalid format: " + format)
+	}
+}
 
 func (z ZilchEntry) Marshal(format string) (string, error) {
 	format = strings.ToUpper(format)
