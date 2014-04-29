@@ -20,6 +20,7 @@ const (
 	COUNTY_COL              string = "county"
 	STATE_COL               string = "state"
 	COUNTRY_COL             string = "country"
+	COUNTRY_NAME_COL        string = "country_name"
 	TIMEZONE_COL            string = "timezone"
 	AREA_CODES_COL          string = "area_codes"
 	LATITUDE_COL            string = "latitude"
@@ -136,6 +137,7 @@ func (r ZilchEntryReader) Read(ch chan ZilchEntry) {
 						County:             getVal(record, COUNTY_COL, ""),
 						State:              getVal(record, STATE_COL, ""),
 						Country:            getVal(record, COUNTRY_COL, r.CountryCode),
+						CountryName:        getVal(record, COUNTRY_NAME_COL, ""),
 						TimeZone:           getVal(record, TIMEZONE_COL, ""),
 						AreaCodes:          areaCodes,
 						Latitude:           latitude,

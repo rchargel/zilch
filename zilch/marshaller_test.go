@@ -13,6 +13,7 @@ func Test_Marshal_Results_JSON(t *testing.T) {
 		UnacceptableCities: []string{"N Springfld"},
 		County:             "Fairfax County",
 		Country:            "US",
+		CountryName:        "United States of America",
 		State:              "VA",
 		TimeZone:           "America/New_York",
 		AreaCodes:          []string{"703", "202"},
@@ -27,7 +28,7 @@ func Test_Marshal_Results_JSON(t *testing.T) {
 		EndIndex:        1,
 	}
 
-	text := `{"ResultsReturned":1,"TotalFound":1,"StartIndex":1,"EndIndex":1,"ZipCodeEntries":[{"ZipCode":"22151","Type":"STANDARD","City":"Springfield","AcceptableCities":["N Springfield","North Springfield"],"UnacceptableCities":["N Springfld"],"County":"Fairfax County","State":"VA","Country":"US","TimeZone":"America/New_York","AreaCodes":["703","202"],"Latitude":38.78,"Longitude":-77.17}]}`
+	text := `{"ResultsReturned":1,"TotalFound":1,"StartIndex":1,"EndIndex":1,"ZipCodeEntries":[{"ZipCode":"22151","Type":"STANDARD","City":"Springfield","AcceptableCities":["N Springfield","North Springfield"],"UnacceptableCities":["N Springfld"],"County":"Fairfax County","State":"VA","Country":"US","CountryName":"United States of America","TimeZone":"America/New_York","AreaCodes":["703","202"],"Latitude":38.78,"Longitude":-77.17}]}`
 
 	json, err := results.Marshal("JSON")
 	if err != nil {
@@ -49,6 +50,7 @@ func Test_Marshal_Results_XML(t *testing.T) {
 		UnacceptableCities: []string{"N Springfld"},
 		County:             "Fairfax County",
 		Country:            "US",
+		CountryName:        "United States of America",
 		State:              "VA",
 		TimeZone:           "America/New_York",
 		AreaCodes:          []string{"703", "202"},
@@ -68,7 +70,7 @@ func Test_Marshal_Results_XML(t *testing.T) {
 		"<ZipCode>22151</ZipCode><Type>STANDARD</Type><City>Springfield</City><AcceptableCities>" +
 		"<City>N Springfield</City><City>North Springfield</City></AcceptableCities>" +
 		"<UnacceptableCities><City>N Springfld</City></UnacceptableCities><County>Fairfax County</County>" +
-		"<State>VA</State><Country>US</Country><TimeZone>America/New_York</TimeZone><AreaCodes>" +
+		"<State>VA</State><Country>US</Country><CountryName>United States of America</CountryName><TimeZone>America/New_York</TimeZone><AreaCodes>" +
 		"<AreaCode>703</AreaCode><AreaCode>202</AreaCode></AreaCodes><Latitude>38.78</Latitude>" +
 		"<Longitude>-77.17</Longitude></ZipCodeEntry></ZipCodeEntries></QueryResult>"
 
@@ -92,6 +94,7 @@ func Test_Marshal_Results_YAML(t *testing.T) {
 		UnacceptableCities: []string{"N Springfld"},
 		County:             "Fairfax County",
 		Country:            "US",
+		CountryName:        "United States of America",
 		State:              "VA",
 		TimeZone:           "America/New_York",
 		AreaCodes:          []string{"703", "202"},
@@ -120,6 +123,7 @@ ZipCodeEntries:
     County:              Fairfax County
     State:               VA
     Country:             US
+    CountryName:         United States of America
     TimeZone:            America/New_York
     AreaCodes:           [703, 202]
     Latitude:            38.78
@@ -147,6 +151,7 @@ func Test_Marshal_JSON(t *testing.T) {
 		UnacceptableCities: []string{"N Springfld"},
 		County:             "Fairfax County",
 		Country:            "US",
+		CountryName:        "United States of America",
 		State:              "VA",
 		TimeZone:           "America/New_York",
 		AreaCodes:          []string{"703", "202"},
@@ -154,7 +159,7 @@ func Test_Marshal_JSON(t *testing.T) {
 		Longitude:          float32(-77.17),
 	}
 
-	text := `{"ZipCode":"22151","Type":"STANDARD","City":"Springfield","AcceptableCities":["N Springfield","North Springfield"],"UnacceptableCities":["N Springfld"],"County":"Fairfax County","State":"VA","Country":"US","TimeZone":"America/New_York","AreaCodes":["703","202"],"Latitude":38.78,"Longitude":-77.17}`
+	text := `{"ZipCode":"22151","Type":"STANDARD","City":"Springfield","AcceptableCities":["N Springfield","North Springfield"],"UnacceptableCities":["N Springfld"],"County":"Fairfax County","State":"VA","Country":"US","CountryName":"United States of America","TimeZone":"America/New_York","AreaCodes":["703","202"],"Latitude":38.78,"Longitude":-77.17}`
 
 	json, err := entry.Marshal("JSON")
 	if err != nil {
@@ -176,6 +181,7 @@ func Test_Marshal_JS(t *testing.T) {
 		UnacceptableCities: []string{"N Springfld"},
 		County:             "Fairfax County",
 		Country:            "US",
+		CountryName:        "United States of America",
 		State:              "VA",
 		TimeZone:           "America/New_York",
 		AreaCodes:          []string{"703", "202"},
@@ -183,7 +189,7 @@ func Test_Marshal_JS(t *testing.T) {
 		Longitude:          float32(-77.17),
 	}
 
-	text := `{"ZipCode":"22151","Type":"STANDARD","City":"Springfield","AcceptableCities":["N Springfield","North Springfield"],"UnacceptableCities":["N Springfld"],"County":"Fairfax County","State":"VA","Country":"US","TimeZone":"America/New_York","AreaCodes":["703","202"],"Latitude":38.78,"Longitude":-77.17}`
+	text := `{"ZipCode":"22151","Type":"STANDARD","City":"Springfield","AcceptableCities":["N Springfield","North Springfield"],"UnacceptableCities":["N Springfld"],"County":"Fairfax County","State":"VA","Country":"US","CountryName":"United States of America","TimeZone":"America/New_York","AreaCodes":["703","202"],"Latitude":38.78,"Longitude":-77.17}`
 
 	json, err := entry.Marshal("JS")
 	if err != nil {
@@ -205,6 +211,7 @@ func Test_Marshal_YAML(t *testing.T) {
 		UnacceptableCities: []string{"N Springfld"},
 		County:             "Fairfax County",
 		Country:            "US",
+		CountryName:        "United States of America",
 		State:              "VA",
 		TimeZone:           "America/New_York",
 		AreaCodes:          []string{"703", "202"},
@@ -220,6 +227,7 @@ func Test_Marshal_YAML(t *testing.T) {
     County:              Fairfax County
     State:               VA
     Country:             US
+    CountryName:         United States of America
     TimeZone:            America/New_York
     AreaCodes:           [703, 202]
     Latitude:            38.78
@@ -247,6 +255,7 @@ func Test_Marshal_XML(t *testing.T) {
 		UnacceptableCities: []string{"N Springfld"},
 		County:             "Fairfax County",
 		Country:            "US",
+		CountryName:        "United States of America",
 		State:              "VA",
 		TimeZone:           "America/New_York",
 		AreaCodes:          []string{"703", "202"},
@@ -254,7 +263,7 @@ func Test_Marshal_XML(t *testing.T) {
 		Longitude:          float32(-77.17),
 	}
 
-	text := `<ZipCodeEntry><ZipCode>22151</ZipCode><Type>STANDARD</Type><City>Springfield</City><AcceptableCities><City>N Springfield</City><City>North Springfield</City></AcceptableCities><UnacceptableCities><City>N Springfld</City></UnacceptableCities><County>Fairfax County</County><State>VA</State><Country>US</Country><TimeZone>America/New_York</TimeZone><AreaCodes><AreaCode>703</AreaCode><AreaCode>202</AreaCode></AreaCodes><Latitude>38.78</Latitude><Longitude>-77.17</Longitude></ZipCodeEntry>`
+	text := `<ZipCodeEntry><ZipCode>22151</ZipCode><Type>STANDARD</Type><City>Springfield</City><AcceptableCities><City>N Springfield</City><City>North Springfield</City></AcceptableCities><UnacceptableCities><City>N Springfld</City></UnacceptableCities><County>Fairfax County</County><State>VA</State><Country>US</Country><CountryName>United States of America</CountryName><TimeZone>America/New_York</TimeZone><AreaCodes><AreaCode>703</AreaCode><AreaCode>202</AreaCode></AreaCodes><Latitude>38.78</Latitude><Longitude>-77.17</Longitude></ZipCodeEntry>`
 
 	if xml, err := entry.Marshal("XML"); err == nil {
 		if xml == text {
@@ -276,6 +285,7 @@ func Test_Marshal_Invalid(t *testing.T) {
 		UnacceptableCities: []string{"N Springfld"},
 		County:             "Fairfax County",
 		Country:            "US",
+		CountryName:        "United States of America",
 		State:              "VA",
 		TimeZone:           "America/New_York",
 		AreaCodes:          []string{"703", "202"},

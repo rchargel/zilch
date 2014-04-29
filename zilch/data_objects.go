@@ -21,6 +21,7 @@ type ZilchEntry struct {
 	County             string
 	State              string
 	Country            string
+	CountryName        string
 	TimeZone           string
 	AreaCodes          []string
 	Latitude           float32
