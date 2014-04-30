@@ -145,9 +145,9 @@ func (q QueryResult) ToXML() (string, error) {
 func (q QueryResult) ToYAML() (string, error) {
 	buf := bytes.Buffer{}
 	buf.WriteString(fmt.Sprintf("ResultsReturned: %v\n", q.ResultsReturned))
-	buf.WriteString(fmt.Sprintf("TotalFound: %v\n", q.TotalFound))
-	buf.WriteString(fmt.Sprintf("StartIndex: %v\n", q.StartIndex))
-	buf.WriteString(fmt.Sprintf("EndIndex: %v\n\n", q.EndIndex))
+	buf.WriteString(fmt.Sprintf("TotalFound:      %v\n", q.TotalFound))
+	buf.WriteString(fmt.Sprintf("StartIndex:      %v\n", q.StartIndex))
+	buf.WriteString(fmt.Sprintf("EndIndex:        %v\n\n", q.EndIndex))
 	buf.WriteString("ZipCodeEntries:\n")
 
 	for _, entry := range q.ZipCodeEntries {

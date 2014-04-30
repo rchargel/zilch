@@ -113,9 +113,9 @@ func Test_Marshal_Results_YAML(t *testing.T) {
 	}
 
 	text := `ResultsReturned: 1
-TotalFound: 1
-StartIndex: 1
-EndIndex: 1
+TotalFound:      1
+StartIndex:      1
+EndIndex:        1
 
 ZipCodeEntries:
   - ZipCode:             22151

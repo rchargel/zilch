@@ -309,7 +309,7 @@ func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEnt
 		}
 		if stateTest {
 			if state != strings.ToLower(entry.State) {
-				if len(state) == 2 || !starts_with(state, strings.ToLower(entry.StateName)) {
+				if len(state) == 2 || !contains(state, strings.ToLower(entry.StateName)) {
 					continue
 				}
 			}
