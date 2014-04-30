@@ -127,8 +127,8 @@ function render() {
 		var movement = (Math.abs(POS_Y - mouseY) * (POS_Y < mouseY ? 1 : -1)) / since;
 		
 		POS_Y += movement;
-		if (POS_Y < -500) { POS_Y = -500; }
-		if (POS_Y > 500) { POS_Y = 500; }
+		if (POS_Y < -500) { POS_Y = -700; }
+		if (POS_Y > 500) { POS_Y = 700; }
 		camera.position.y = POS_Y;
 		lastShiftTime = Date.now();
 	}

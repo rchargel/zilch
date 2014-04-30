@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	QUERY_URL     string = "https://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=%s&address=%s&key=%s"
+	QUERY_URL     string = "https://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=%s&address=%s%s"
 	EXCEEDS_LIMIT string = "OVER_QUERY_LIMIT"
 	ZIP_TYPE      string = "postal_code"
 	CITY_TYPE     string = "locality"
@@ -69,7 +69,12 @@ type Resolver struct {
 
 func (r Resolver) FindResultList(resultChan chan GResults) {
 	for _, zipCode := range r.ZipCodes {
-		addr := fmt.Sprintf(QUERY_URL, strings.ToLower(r.CountryCode), zipCode, r.AppKey)
+		var addr string
+		if len(r.AppKey) == 0 {
+			addr = fmt.Sprintf(QUERY_URL, strings.ToLower(r.CountryCode), zipCode, "")
+		} else {
+			addr = fmt.Sprintf(QUERY_URL, strings.ToLower(r.CountryCode), zipCode, "&key="+r.AppKey)
+		}
 		if results, err := r.getResults(addr, 1); err == nil {
 			resultChan <- results
 		} else {
@@ -94,7 +99,7 @@ func (r Resolver) OutputCSV(writer io.Writer) {
 		r.outputResults(w, result)
 	}
 
-	w.WriteString(fmt.Sprintf("\nFinished CSV output in %v\n", time.Since(start)))
+	fmt.Printf("\nFinished CSV output in %v\n", time.Since(start))
 	w.Flush()
 }
 
