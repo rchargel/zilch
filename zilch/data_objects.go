@@ -20,6 +20,7 @@ type ZilchEntry struct {
 	UnacceptableCities []string
 	County             string
 	State              string
+	StateName          string
 	Country            string
 	CountryName        string
 	TimeZone           string

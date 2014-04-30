@@ -23,10 +23,11 @@ func main() {
 	runtime.GOMAXPROCS(cpus)
 	fmt.Printf("Running on %v CPU cores.\n", cpus)
 
-	var country, file string
+	var country, file, appKey string
 
 	flag.StringVar(&country, "c", "", "The country to create CSV for")
 	flag.StringVar(&file, "f", "", "Location of the Zip Codes file to parse")
+	flag.StringVar(&appKey, "k", "", "The application key")
 	flag.Parse()
 
 	if len(country) == 0 || len(file) == 0 {
@@ -51,7 +52,7 @@ func main() {
 				zipCodes = append(zipCodes, strings.TrimSpace(string(line)))
 			}
 		}
-		resolver := zilch.Resolver{strings.ToLower(country), zipCodes}
+		resolver := zilch.Resolver{strings.ToLower(country), appKey, zipCodes}
 		resolver.OutputCSV(ConsoleWriter{})
 	}
 }

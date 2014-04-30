@@ -13,12 +13,13 @@ import (
 )
 
 const (
-	QUERY_URL    string = "https://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=%s&address=%s&key=%s"
-	ZIP_TYPE     string = "postal_code"
-	CITY_TYPE    string = "locality"
-	COUNTY_TYPE  string = "sublocality_level_1"
-	STATE_TYPE   string = "administrative_area_level_1"
-	COUNTRY_TYPE string = "country"
+	QUERY_URL     string = "https://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=%s&address=%s&key=%s"
+	EXCEEDS_LIMIT string = "OVER_QUERY_LIMIT"
+	ZIP_TYPE      string = "postal_code"
+	CITY_TYPE     string = "locality"
+	COUNTY_TYPE   string = "sublocality_level_1"
+	STATE_TYPE    string = "administrative_area_level_1"
+	COUNTRY_TYPE  string = "country"
 )
 
 type Location struct {
@@ -46,6 +47,7 @@ type Result struct {
 
 type GResults struct {
 	Results []Result
+	Status  string
 }
 
 func (r Result) FindAddressComponent(compType string) (AddressComponent, error) {
@@ -61,16 +63,20 @@ func (r Result) FindAddressComponent(compType string) (AddressComponent, error) 
 
 type Resolver struct {
 	CountryCode string
+	AppKey      string
 	ZipCodes    []string
 }
 
 func (r Resolver) FindResultList(resultChan chan GResults) {
 	for _, zipCode := range r.ZipCodes {
-		addr := fmt.Sprintf(QUERY_URL, strings.ToLower(r.CountryCode), zipCode, "AIzaSyAa8lJHv5Hpgt2XR9_H9M4uwfX-CwNeezU")
+		addr := fmt.Sprintf(QUERY_URL, strings.ToLower(r.CountryCode), zipCode, r.AppKey)
 		if results, err := r.getResults(addr, 1); err == nil {
 			resultChan <- results
 		} else {
 			fmt.Println(err)
+			if strings.Index(err.Error(), "Exceed") != -1 {
+				break
+			}
 		}
 	}
 	close(resultChan)
@@ -115,6 +121,9 @@ func (r Resolver) getResults(addr string, attempt int) (GResults, error) {
 					if len(results.Results) == 1 {
 						return results, nil
 					} else if len(results.Results) == 0 {
+						if results.Status == EXCEEDS_LIMIT {
+							return results, errors.New("Exceeds the maximum daily query limit")
+						}
 						time.Sleep(1000 * time.Millisecond)
 						return r.getResults(addr, attempt+1)
 					} else {

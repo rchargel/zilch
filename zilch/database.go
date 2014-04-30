@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -220,6 +221,7 @@ func (d *Database) queryAllCountries(queryParams map[string]string) ([]ZilchEntr
 }
 
 func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEntry) {
+	nonalphanum := regexp.MustCompile("[^0-9A-Za-z]")
 	string_data := func(paramName string, params map[string]string) (string, bool) {
 		if value, valExists := params[paramName]; valExists {
 			return strings.ToLower(value), true
@@ -282,7 +284,7 @@ func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEnt
 
 	for _, entry := range c.Entries {
 		if zipCodeTest {
-			if !starts_with(zipCode, strings.ToLower(entry.ZipCode)) {
+			if !starts_with(nonalphanum.ReplaceAllString(zipCode, ""), strings.ToLower(nonalphanum.ReplaceAllString(entry.ZipCode, ""))) {
 				continue
 			}
 		}
@@ -307,7 +309,9 @@ func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEnt
 		}
 		if stateTest {
 			if state != strings.ToLower(entry.State) {
-				continue
+				if len(state) == 2 || !starts_with(state, strings.ToLower(entry.StateName)) {
+					continue
+				}
 			}
 		}
 		if countyTest {

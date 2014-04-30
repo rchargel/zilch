@@ -19,6 +19,7 @@ const (
 	UNACCEPTABLE_CITIES_COL string = "unacceptable_cities"
 	COUNTY_COL              string = "county"
 	STATE_COL               string = "state"
+	STATE_NAME_COL          string = "state_name"
 	COUNTRY_COL             string = "country"
 	COUNTRY_NAME_COL        string = "country_name"
 	TIMEZONE_COL            string = "timezone"
@@ -136,6 +137,7 @@ func (r ZilchEntryReader) Read(ch chan ZilchEntry) {
 						UnacceptableCities: unacceptableCities,
 						County:             getVal(record, COUNTY_COL, ""),
 						State:              getVal(record, STATE_COL, ""),
+						StateName:          getVal(record, STATE_NAME_COL, ""),
 						Country:            getVal(record, COUNTRY_COL, r.CountryCode),
 						CountryName:        getVal(record, COUNTRY_NAME_COL, ""),
 						TimeZone:           getVal(record, TIMEZONE_COL, ""),
