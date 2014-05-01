@@ -24,9 +24,5 @@ func (c ZipCodeController) GetDistribution(ctx *web.Context, format string) {
 
 func (c ZipCodeController) GetCountries(ctx *web.Context, format string) {
 	writer := ResponseWriter{ctx, format}
-	countries := make(map[string]int)
-	for _, entries := range c.database.CountryIndexMap {
-		countries[entries.CountryCode] = len(entries.Entries)
-	}
-	writer.SendCountryListResponse(countries)
+	writer.SendCountryListResponse(c.database.CountryList)
 }

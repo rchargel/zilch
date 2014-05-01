@@ -52,12 +52,12 @@ func (writer ResponseWriter) SendDistributionResponse(d []DistributionEntry) {
 	}
 }
 
-func (writer ResponseWriter) SendCountryListResponse(c map[string]int) {
+func (writer ResponseWriter) SendCountryListResponse(c []CountryEntry) {
 	format := "JSON"
 	if len(writer.format) > 0 {
 		format = strings.ToUpper(writer.format)
 	}
-	cm := CountryMarshaller(c)
+	cm := CountryEntryMarshaller(c)
 	response, err := cm.Marshal(format)
 
 	if err != nil {

@@ -16,13 +16,12 @@ angular.module('zilch', []).controller('ZilchController', function($http, $scope
 		$http.jsonp('/countries.js?callback=JSON_CALLBACK').success(function(response) {
 			var list = [];
 			console.log(response)
-			for (var country in response) {
-				if (response[country] >= 100) {
-					// there are US military outposts in many countries that are not supported
-					list.push(country);
-				}
+			for (var i = 0; i < response.length; i++) {
+				list.push({
+					'code' : response[i].Country,
+					'name' : response[i].CountryName
+				});
 			}
-			list.sort();
 			$scope.countries = list;
 		});
 	};
@@ -41,8 +40,8 @@ angular.module('zilch', []).controller('ZilchController', function($http, $scope
 	$scope.findEntries = function() {
 		if ($scope.zipCode && $scope.zipCode.length >= 3) {
 			var url = $scope.url + '&ZipCode=' + $scope.zipCode;
-			if ($scope.countryCode && $scope.countryCode.length == 2) {
-				url += '&Country=' + $scope.countryCode;
+			if ($scope.countryCode && $scope.countryCode.code.length == 2) {
+				url += '&Country=' + $scope.countryCode.code;
 			}
 			$http.jsonp(url).success(function(response) {
 				$scope.clear();

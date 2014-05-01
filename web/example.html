@@ -63,7 +63,7 @@
 		</p>
 		<p>
 			<label for="country">Country [optional]:</label>
-			<select id="country" ng-model="countryCode" ng-options="c for c in countries">
+			<select id="country" ng-model="countryCode" ng-options="c.name for c in countries">
 				<option value="">None</option>
 			</select>
 		</p>

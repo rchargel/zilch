@@ -23,6 +23,7 @@ type CountryIndex struct {
 type Database struct {
 	CountryIndexMap map[string]CountryIndex
 	DistributionMap map[uint32]DistributionEntry
+	CountryList     []CountryEntry
 	FullyLoaded     bool
 }
 
@@ -31,6 +32,7 @@ func NewDatabase(filedir string) (*Database, error) {
 	d := &Database{
 		CountryIndexMap: make(map[string]CountryIndex),
 		DistributionMap: make(map[uint32]DistributionEntry),
+		CountryList:     make([]CountryEntry, 0, 0),
 		FullyLoaded:     false,
 	}
 
@@ -69,15 +71,70 @@ func (d *Database) loadCountryData(countryCode string, channel chan ZilchEntry, 
 	entries := make([]ZilchEntry, 0, 1000)
 	distMap := make(map[uint32]int)
 
+	type state_data struct {
+		State     string
+		StateName string
+		ZipCodes  int
+	}
+	type country_data struct {
+		Country     string
+		CountryName string
+		States      map[string]state_data
+	}
+
+	country := country_data{
+		Country:     countryCode,
+		CountryName: "",
+		States:      make(map[string]state_data),
+	}
+
 	for entry := range channel {
 		entries = append(entries, entry)
 		distMap[entry.GetKey()] += 1
+
+		if len(country.CountryName) == 0 {
+			country.CountryName = entry.CountryName
+		}
+
+		if len(entry.State) > 0 {
+			if state, found := country.States[entry.State]; found {
+				country.States[entry.State] = state_data{
+					State:     state.State,
+					StateName: state.StateName,
+					ZipCodes:  state.ZipCodes + 1,
+				}
+			} else {
+				country.States[entry.State] = state_data{
+					State:     entry.State,
+					StateName: entry.StateName,
+					ZipCodes:  1,
+				}
+			}
+		}
 	}
+
+	countryEntry := CountryEntry{
+		Country:     country.Country,
+		CountryName: country.CountryName,
+		States:      make([]StateEntry, len(country.States)),
+	}
+	var idx int
+	for _, st := range country.States {
+		countryEntry.States[idx] = StateEntry{
+			State:     st.State,
+			StateName: st.StateName,
+			ZipCodes:  uint32(st.ZipCodes),
+		}
+		idx++
+	}
+
+	sort.Sort(StateSorter(countryEntry.States))
 
 	d.CountryIndexMap[countryCode] = CountryIndex{
 		CountryCode: countryCode,
 		Entries:     entries,
 	}
+	d.CountryList = append(d.CountryList, countryEntry)
 
 	distChannel <- distMap
 }
@@ -118,6 +175,8 @@ func (d *Database) finishDistributionChannels(distChannel chan map[uint32]int, t
 			break
 		}
 	}
+
+	sort.Sort(CountrySorter(d.CountryList))
 
 	d.FullyLoaded = true
 
