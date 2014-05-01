@@ -1,8 +1,113 @@
 package zilch
 
 import (
+	"strings"
 	"testing"
 )
+
+func Test_Marshal_Countries_JSON(t *testing.T) {
+	entries := []CountryEntry{
+		CountryEntry{
+			Country:     "US",
+			CountryName: "United States of America",
+			States: []StateEntry{
+				StateEntry{
+					State:     "VA",
+					StateName: "Virginia",
+					ZipCodes:  uint32(100),
+				},
+				StateEntry{
+					State:     "PA",
+					StateName: "Pennsylvania",
+					ZipCodes:  uint32(321),
+				},
+			},
+		},
+	}
+
+	test := `[{"Country":"US","CountryName":"United States of America","States":[{"State":"VA","StateName":"Virginia","ZipCodes":100},{"State":"PA","StateName":"Pennsylvania","ZipCodes":321}]}]`
+
+	if data, err := CountryEntryMarshaller(entries).Marshal("JSON"); err != nil {
+		t.Error(err)
+	} else if strings.Trim(data, "\n") == test {
+		t.Log("Correct JSON formatting")
+	} else {
+		t.Errorf("Invalid JSON Formatting\nFound:\n'%s'\n\nExpecting:\n'%s'\n", data, test)
+	}
+}
+
+func Test_Marshal_Countries_XML(t *testing.T) {
+	entries := []CountryEntry{
+		CountryEntry{
+			Country:     "US",
+			CountryName: "United States of America",
+			States: []StateEntry{
+				StateEntry{
+					State:     "VA",
+					StateName: "Virginia",
+					ZipCodes:  uint32(100),
+				},
+				StateEntry{
+					State:     "PA",
+					StateName: "Pennsylvania",
+					ZipCodes:  uint32(321),
+				},
+			},
+		},
+	}
+
+	test := `<?xml version="1.0" encoding="UTF-8"?><Countries><CountryEntry><Country>US</Country><CountryName>United States of America</CountryName><States><State>VA</State><StateName>Virginia</StateName><ZipCodes>100</ZipCodes></States><States><State>PA</State><StateName>Pennsylvania</StateName><ZipCodes>321</ZipCodes></States></CountryEntry></Countries>`
+
+	if data, err := CountryEntryMarshaller(entries).Marshal("XML"); err != nil {
+		t.Error(err)
+	} else if strings.Trim(data, "\n") == test {
+		t.Log("Correct XML formatting")
+	} else {
+		t.Errorf("Invalid XML Formatting\nFound:\n'%s'\n\nExpecting:\n'%s'\n", data, test)
+	}
+}
+
+func Test_Marshal_Countries_YAML(t *testing.T) {
+	entries := []CountryEntry{
+		CountryEntry{
+			Country:     "US",
+			CountryName: "United States of America",
+			States: []StateEntry{
+				StateEntry{
+					State:     "VA",
+					StateName: "Virginia",
+					ZipCodes:  uint32(100),
+				},
+				StateEntry{
+					State:     "PA",
+					StateName: "Pennsylvania",
+					ZipCodes:  uint32(321),
+				},
+			},
+		},
+	}
+
+	test := `  - Country:     US
+    CountryName: United States of America
+    States:
+      - State:     VA
+        StateName: Virginia
+        ZipCodes:  100
+
+      - State:     PA
+        StateName: Pennsylvania
+        ZipCodes:  321
+
+`
+
+	if data, err := CountryEntryMarshaller(entries).Marshal("YAML"); err != nil {
+		t.Error(err)
+	} else if test == data {
+		t.Log("Correct YAML formatting")
+	} else {
+		t.Errorf("Invalid YAML Formatting\nFound:\n'%s'\n\nExpecting:\n'%s'\n", data, test)
+	}
+}
 
 func Test_Marshal_Results_JSON(t *testing.T) {
 	entry := ZilchEntry{

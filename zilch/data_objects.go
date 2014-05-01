@@ -29,6 +29,20 @@ type ZilchEntry struct {
 	Longitude          float32
 }
 
+type StateEntry struct {
+	State     string
+	StateName string
+	ZipCodes  uint32
+}
+
+type CountryEntry struct {
+	Country     string
+	CountryName string
+	States      []StateEntry
+}
+
+type CountryEntryMarshaller []CountryEntry
+
 type QueryResult struct {
 	ResultsReturned int
 	TotalFound      int
@@ -38,6 +52,10 @@ type QueryResult struct {
 }
 
 type ZilchSorter []ZilchEntry
+
+type StateSorter []StateEntry
+
+type CountrySorter []CountryEntry
 
 func (z ZilchEntry) GetKey() uint32 {
 	return GetKeyFromLatitudeLongitude(z.Latitude, z.Longitude)
@@ -55,6 +73,14 @@ func (z ZilchSorter) Less(i, j int) bool {
 func (d DistributionSorter) Len() int           { return len(d) }
 func (d DistributionSorter) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
 func (d DistributionSorter) Less(i, j int) bool { return d[i].ZipCodes > d[j].ZipCodes }
+
+func (s StateSorter) Len() int           { return len(s) }
+func (s StateSorter) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+func (s StateSorter) Less(i, j int) bool { return s[i].State < s[j].State }
+
+func (c CountrySorter) Len() int           { return len(c) }
+func (c CountrySorter) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+func (c CountrySorter) Less(i, j int) bool { return c[i].CountryName < c[j].CountryName }
 
 func GetKeyFromLatitudeLongitude(latitude, longitude float32) uint32 {
 	lon := uint32(longitude + 180)

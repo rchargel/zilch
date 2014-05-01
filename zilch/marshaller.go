@@ -80,6 +80,45 @@ func (c CountryMarshaller) Marshal(format string) (string, error) {
 	}
 }
 
+func (c CountryEntryMarshaller) Marshal(format string) (string, error) {
+	format = strings.ToUpper(format)
+	buf := bytes.Buffer{}
+	switch format {
+	case "JS":
+		enc := json.NewEncoder(&buf)
+		if err := enc.Encode(&c); err != nil {
+			return "", err
+		}
+	case "JSON":
+		enc := json.NewEncoder(&buf)
+		if err := enc.Encode(&c); err != nil {
+			return "", err
+		}
+	case "XML":
+		buf.WriteString(`<?xml version="1.0" encoding="UTF-8"?><Countries>`)
+		enc := xml.NewEncoder(&buf)
+		if err := enc.Encode(&c); err != nil {
+			return "", err
+		}
+		buf.WriteString("</Countries>")
+	case "YAML":
+		for _, ce := range c {
+			buf.WriteString(fmt.Sprintf("  - Country:     %v\n", ce.Country))
+			buf.WriteString(fmt.Sprintf("    CountryName: %v\n", ce.CountryName))
+			buf.WriteString("    States:\n")
+
+			for _, se := range ce.States {
+				buf.WriteString(fmt.Sprintf("      - State:     %v\n", se.State))
+				buf.WriteString(fmt.Sprintf("        StateName: %v\n", se.StateName))
+				buf.WriteString(fmt.Sprintf("        ZipCodes:  %v\n\n", se.ZipCodes))
+			}
+		}
+	default:
+		return "", errors.New("Invalid format: " + format)
+	}
+	return buf.String(), nil
+}
+
 func (z ZilchEntry) Marshal(format string) (string, error) {
 	format = strings.ToUpper(format)
 	switch format {
