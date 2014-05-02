@@ -105,8 +105,8 @@ func (r Resolver) OutputCSV(writer io.Writer) {
 
 func (r Resolver) getResults(addr string, attempt int) (GResults, error) {
 	var results GResults
-	if attempt > 5 {
-		return results, errors.New("Exceeded the maximum number of attempts for: " + addr)
+	if attempt > 3 {
+		return results, errors.New("Reached maximum number of attempts for: " + addr)
 	}
 	if resp, err := http.Get(addr); err != nil {
 		return results, err
