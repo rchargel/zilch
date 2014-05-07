@@ -22,6 +22,7 @@ func StartServer(resourceDir, port string) {
 	web.Get("/countries\\.?(.*)", zcc.GetCountries)
 	web.Post("/countries\\.?(.*)", zcc.GetCountries)
 	web.Get("/map_(\\d*)\\.png", pc.RenderImage)
+	web.Get("/distmap_(\\d*)\\.png", pc.RenderDistributionImage)
 	web.Get("/images/(.*)", sc.RenderImages)
 	web.Get("/js/(.*)", sc.RenderJs)
 	web.Get("/(.*)", sc.RenderHtml)

@@ -72,7 +72,7 @@ func (z ZilchSorter) Less(i, j int) bool {
 
 func (d DistributionSorter) Len() int           { return len(d) }
 func (d DistributionSorter) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
-func (d DistributionSorter) Less(i, j int) bool { return d[i].ZipCodes > d[j].ZipCodes }
+func (d DistributionSorter) Less(i, j int) bool { return d[i].ZipCodes < d[j].ZipCodes }
 
 func (s StateSorter) Len() int           { return len(s) }
 func (s StateSorter) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
