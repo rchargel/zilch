@@ -33,7 +33,7 @@
 		}
 		#countries li {
 			float: left;
-			width: 10em;
+			width: 16em;
 		}
 		</style>
 	</head>
@@ -103,7 +103,7 @@
 		<div ng-controller="RootController">
 		<p>There are currently {{total}} records in the zip code database supporting the following countries:
 			<ul id="countries">
-				<li ng-repeat="country in countries">{{country.CountryName}}</li>
+				<li ng-repeat="country in countries">{{country.CountryName}} ({{country.Total}})</li>
 			</ul>
 		</p>
 		</div>
