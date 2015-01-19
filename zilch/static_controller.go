@@ -2,29 +2,35 @@ package zilch
 
 import (
 	"bufio"
-	"github.com/hoisie/web"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/hoisie/web"
 )
 
+// StaticController this is the controller for static content.
 type StaticController struct {
 }
 
+// RenderRoot outputs the root html file.
 func (c StaticController) RenderRoot(ctx *web.Context) {
-	c.RenderHtml(ctx, "root.html")
+	c.RenderHTML(ctx, "root.html")
 }
 
-func (c StaticController) RenderHtml(ctx *web.Context, page string) {
+// RenderHTML outputs a specific HTML page.
+func (c StaticController) RenderHTML(ctx *web.Context, page string) {
 	c.renderContent(ctx, "text/html", "./web/"+page)
 }
 
+// RenderImages outputs content from the images directory.
 func (c StaticController) RenderImages(ctx *web.Context, image string) {
 	ext := image[strings.Index(image, ".")+1:]
 	c.renderContent(ctx, "image/"+ext, "./web/images/"+image)
 }
 
-func (c StaticController) RenderJs(ctx *web.Context, jsFile string) {
+// RenderJS outputs content for the javascript directory.
+func (c StaticController) RenderJS(ctx *web.Context, jsFile string) {
 	c.renderContent(ctx, "application/javascript", "./web/js/"+jsFile)
 }
 

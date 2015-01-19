@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// Marshal marshals the a DistributionEntry.
 func (d DistributionMarshaller) Marshal(format string) (string, error) {
 	format = strings.ToUpper(format)
 	buf := bytes.Buffer{}
@@ -47,6 +48,7 @@ func (d DistributionMarshaller) Marshal(format string) (string, error) {
 	}
 }
 
+// Marshal marshals the a country-zipcodes map.
 func (c CountryMarshaller) Marshal(format string) (string, error) {
 	format = strings.ToUpper(format)
 	buf := bytes.Buffer{}
@@ -80,6 +82,7 @@ func (c CountryMarshaller) Marshal(format string) (string, error) {
 	}
 }
 
+// Marshal marshals the CountryEntry object.
 func (c CountryEntryMarshaller) Marshal(format string) (string, error) {
 	format = strings.ToUpper(format)
 	buf := bytes.Buffer{}
@@ -119,39 +122,41 @@ func (c CountryEntryMarshaller) Marshal(format string) (string, error) {
 	return buf.String(), nil
 }
 
-func (z ZilchEntry) Marshal(format string) (string, error) {
+// Marshal marshals the ZipEntry object.
+func (z ZipEntry) Marshal(format string) (string, error) {
 	format = strings.ToUpper(format)
 	switch format {
 	case "XML":
-		return z.ToXML()
+		return z.toXML()
 	case "JS":
-		return z.ToJSON()
+		return z.toJSON()
 	case "JSON":
-		return z.ToJSON()
+		return z.toJSON()
 	case "YAML":
-		return z.ToYAML()
+		return z.toYAML()
 	default:
 		return "", errors.New("Invalid format: " + format)
 	}
 }
 
+// Marshal marshals the QueryResult object.
 func (q QueryResult) Marshal(format string) (string, error) {
 	format = strings.ToUpper(format)
 	switch format {
 	case "XML":
-		return q.ToXML()
+		return q.toXML()
 	case "JS":
-		return q.ToJSON()
+		return q.toJSON()
 	case "JSON":
-		return q.ToJSON()
+		return q.toJSON()
 	case "YAML":
-		return q.ToYAML()
+		return q.toYAML()
 	default:
 		return "", errors.New("Invalid format: " + format)
 	}
 }
 
-func (q QueryResult) ToJSON() (string, error) {
+func (q QueryResult) toJSON() (string, error) {
 	buf := bytes.Buffer{}
 	enc := json.NewEncoder(&buf)
 	r := regexp.MustCompile("\\s+$")
@@ -161,7 +166,7 @@ func (q QueryResult) ToJSON() (string, error) {
 	return r.ReplaceAllString(buf.String(), ""), nil
 }
 
-func (q QueryResult) ToXML() (string, error) {
+func (q QueryResult) toXML() (string, error) {
 	buf := bytes.Buffer{}
 	buf.WriteString("<QueryResult>")
 	buf.WriteString(fmt.Sprintf("<ResultsReturned>%v</ResultsReturned>", q.ResultsReturned))
@@ -170,18 +175,18 @@ func (q QueryResult) ToXML() (string, error) {
 	buf.WriteString(fmt.Sprintf("<EndIndex>%v</EndIndex>", q.EndIndex))
 	buf.WriteString("<ZipCodeEntries>")
 	for _, entry := range q.ZipCodeEntries {
-		if xml, err := entry.ToXML(); err != nil {
+		xml, err := entry.toXML()
+		if err != nil {
 			return "", err
-		} else {
-			buf.WriteString(xml)
 		}
+		buf.WriteString(xml)
 	}
 	buf.WriteString("</ZipCodeEntries>")
 	buf.WriteString("</QueryResult>")
 	return buf.String(), nil
 }
 
-func (q QueryResult) ToYAML() (string, error) {
+func (q QueryResult) toYAML() (string, error) {
 	buf := bytes.Buffer{}
 	buf.WriteString(fmt.Sprintf("ResultsReturned: %v\n", q.ResultsReturned))
 	buf.WriteString(fmt.Sprintf("TotalFound:      %v\n", q.TotalFound))
@@ -190,16 +195,16 @@ func (q QueryResult) ToYAML() (string, error) {
 	buf.WriteString("ZipCodeEntries:\n")
 
 	for _, entry := range q.ZipCodeEntries {
-		if yaml, err := entry.ToYAML(); err != nil {
+		yaml, err := entry.toYAML()
+		if err != nil {
 			return "", err
-		} else {
-			buf.WriteString(yaml)
 		}
+		buf.WriteString(yaml)
 	}
 	return buf.String(), nil
 }
 
-func (z ZilchEntry) ToJSON() (string, error) {
+func (z ZipEntry) toJSON() (string, error) {
 	buf := bytes.Buffer{}
 	enc := json.NewEncoder(&buf)
 	r := regexp.MustCompile("\\s+$")
@@ -209,7 +214,7 @@ func (z ZilchEntry) ToJSON() (string, error) {
 	return r.ReplaceAllString(buf.String(), ""), nil
 }
 
-func (z ZilchEntry) ToYAML() (string, error) {
+func (z ZipEntry) toYAML() (string, error) {
 	buf := bytes.Buffer{}
 	zval := reflect.ValueOf(z)
 	for i := 0; i < zval.NumField(); i++ {
@@ -247,7 +252,7 @@ func (z ZilchEntry) ToYAML() (string, error) {
 	return buf.String(), nil
 }
 
-func (z ZilchEntry) ToXML() (string, error) {
+func (z ZipEntry) toXML() (string, error) {
 	buf := bytes.Buffer{}
 
 	strtoxml := func(text string) string {

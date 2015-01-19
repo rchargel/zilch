@@ -2,10 +2,12 @@ package zilch
 
 import (
 	"fmt"
-	"github.com/hoisie/web"
 	"time"
+
+	"github.com/hoisie/web"
 )
 
+// StartServer starts the Zilch Web Server.
 func StartServer(resourceDir, port string) {
 	start := time.Now()
 	database, _ := NewDatabase(resourceDir)
@@ -24,8 +26,8 @@ func StartServer(resourceDir, port string) {
 	web.Get("/map_(\\d*)\\.png", pc.RenderImage)
 	web.Get("/distmap_(\\d*)\\.png", pc.RenderDistributionImage)
 	web.Get("/images/(.*)", sc.RenderImages)
-	web.Get("/js/(.*)", sc.RenderJs)
-	web.Get("/(.*)", sc.RenderHtml)
+	web.Get("/js/(.*)", sc.RenderJS)
+	web.Get("/(.*)", sc.RenderHTML)
 
 	fmt.Printf("Server started on port %v in %v\n", port, time.Since(start))
 	web.Run("0.0.0.0:" + port)

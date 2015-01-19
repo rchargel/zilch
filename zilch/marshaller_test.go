@@ -110,7 +110,7 @@ func Test_Marshal_Countries_YAML(t *testing.T) {
 }
 
 func Test_Marshal_Results_JSON(t *testing.T) {
-	entry := ZilchEntry{
+	entry := ZipEntry{
 		ZipCode:            "22151",
 		Type:               "STANDARD",
 		City:               "Springfield",
@@ -127,7 +127,7 @@ func Test_Marshal_Results_JSON(t *testing.T) {
 		Longitude:          float32(-77.17),
 	}
 	results := QueryResult{
-		ZipCodeEntries:  []ZilchEntry{entry},
+		ZipCodeEntries:  []ZipEntry{entry},
 		ResultsReturned: 1,
 		TotalFound:      1,
 		StartIndex:      1,
@@ -148,7 +148,7 @@ func Test_Marshal_Results_JSON(t *testing.T) {
 }
 
 func Test_Marshal_Results_XML(t *testing.T) {
-	entry := ZilchEntry{
+	entry := ZipEntry{
 		ZipCode:            "22151",
 		Type:               "STANDARD",
 		City:               "Springfield",
@@ -165,7 +165,7 @@ func Test_Marshal_Results_XML(t *testing.T) {
 		Longitude:          float32(-77.17),
 	}
 	results := QueryResult{
-		ZipCodeEntries:  []ZilchEntry{entry},
+		ZipCodeEntries:  []ZipEntry{entry},
 		ResultsReturned: 1,
 		TotalFound:      1,
 		StartIndex:      1,
@@ -193,7 +193,7 @@ func Test_Marshal_Results_XML(t *testing.T) {
 }
 
 func Test_Marshal_Results_YAML(t *testing.T) {
-	entry := ZilchEntry{
+	entry := ZipEntry{
 		ZipCode:            "22151",
 		Type:               "STANDARD",
 		City:               "Springfield",
@@ -210,7 +210,7 @@ func Test_Marshal_Results_YAML(t *testing.T) {
 		Longitude:          float32(-77.17),
 	}
 	results := QueryResult{
-		ZipCodeEntries:  []ZilchEntry{entry},
+		ZipCodeEntries:  []ZipEntry{entry},
 		ResultsReturned: 1,
 		TotalFound:      1,
 		StartIndex:      1,
@@ -252,7 +252,7 @@ ZipCodeEntries:
 }
 
 func Test_Marshal_JSON(t *testing.T) {
-	entry := ZilchEntry{
+	entry := ZipEntry{
 		ZipCode:            "22151",
 		Type:               "STANDARD",
 		City:               "Springfield",
@@ -283,7 +283,7 @@ func Test_Marshal_JSON(t *testing.T) {
 }
 
 func Test_Marshal_JS(t *testing.T) {
-	entry := ZilchEntry{
+	entry := ZipEntry{
 		ZipCode:            "22151",
 		Type:               "STANDARD",
 		City:               "Springfield",
@@ -314,7 +314,7 @@ func Test_Marshal_JS(t *testing.T) {
 }
 
 func Test_Marshal_YAML(t *testing.T) {
-	entry := ZilchEntry{
+	entry := ZipEntry{
 		ZipCode:            "22151",
 		Type:               "STANDARD",
 		City:               "Springfield",
@@ -360,7 +360,7 @@ func Test_Marshal_YAML(t *testing.T) {
 }
 
 func Test_Marshal_XML(t *testing.T) {
-	entry := ZilchEntry{
+	entry := ZipEntry{
 		ZipCode:            "22151",
 		Type:               "STANDARD",
 		City:               "Springfield",
@@ -391,7 +391,7 @@ func Test_Marshal_XML(t *testing.T) {
 }
 
 func Test_Marshal_Invalid(t *testing.T) {
-	entry := ZilchEntry{
+	entry := ZipEntry{
 		ZipCode:            "22151",
 		Type:               "STANDARD",
 		City:               "Springfield",

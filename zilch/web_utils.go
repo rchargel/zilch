@@ -4,27 +4,32 @@ import (
 	"bufio"
 	"compress/gzip"
 	"fmt"
-	"github.com/hoisie/web"
 	"strings"
+
+	"github.com/hoisie/web"
 )
 
+// ResponseWriter writes output to the servers response context.
 type ResponseWriter struct {
 	ctx    *web.Context
 	format string
 }
 
-func (writer ResponseWriter) GetQuery() map[string]string {
+func (writer ResponseWriter) getQuery() map[string]string {
 	query := make(map[string]string)
-	for key, _ := range writer.ctx.Request.Form {
+	for key := range writer.ctx.Request.Form {
 		query[key] = writer.ctx.Request.FormValue(key)
 	}
 	return query
 }
 
+// SendError sends the supplied error to the user via an HTTP 500 error.
 func (writer ResponseWriter) SendError(err error) {
 	writer.ctx.Abort(500, err.Error())
 }
 
+// SendDistributionResponse sends the response as a list of DistributionEntry
+// objects.
 func (writer ResponseWriter) SendDistributionResponse(d []DistributionEntry) {
 	format := "JSON"
 	if len(writer.format) > 0 {
@@ -52,6 +57,7 @@ func (writer ResponseWriter) SendDistributionResponse(d []DistributionEntry) {
 	}
 }
 
+// SendCountryListResponse sends the response as a list of CountryEntry objects.
 func (writer ResponseWriter) SendCountryListResponse(c []CountryEntry) {
 	format := "JSON"
 	if len(writer.format) > 0 {
@@ -79,6 +85,7 @@ func (writer ResponseWriter) SendCountryListResponse(c []CountryEntry) {
 	}
 }
 
+// SendQueryResponse sends the response to a query.
 func (writer ResponseWriter) SendQueryResponse(queryResult QueryResult) {
 	if response, err := writer.marshalQueryResponse(queryResult); err == nil {
 		writer.compressionFilter(response)

@@ -11,40 +11,42 @@ import (
 )
 
 const (
-	DECOMISSIONED_COL       string = "decommissioned"
-	ZIP_CODE_COL            string = "zip"
-	TYPE_COL                string = "type"
-	CITY_COL                string = "primary_city"
-	ACCEPTABLE_CITIES_COL   string = "acceptable_cities"
-	UNACCEPTABLE_CITIES_COL string = "unacceptable_cities"
-	COUNTY_COL              string = "county"
-	STATE_COL               string = "state"
-	STATE_NAME_COL          string = "state_name"
-	COUNTRY_COL             string = "country"
-	COUNTRY_NAME_COL        string = "country_name"
-	TIMEZONE_COL            string = "timezone"
-	AREA_CODES_COL          string = "area_codes"
-	LATITUDE_COL            string = "latitude"
-	LONGITUDE_COL           string = "longitude"
+	decommissionedCol     string = "decommissioned"
+	zipCodeCol            string = "zip"
+	typeCol               string = "type"
+	cityCol               string = "primary_city"
+	acceptableCitiesCol   string = "acceptable_cities"
+	unacceptableCitiesCol string = "unacceptable_cities"
+	countyCol             string = "county"
+	stateCol              string = "state"
+	stateNameCol          string = "state_name"
+	countryCol            string = "country"
+	countryNameCol        string = "country_name"
+	timezoneCol           string = "timezone"
+	areaCodesCol          string = "area_codes"
+	latitudeCol           string = "latitude"
+	longitudeCol          string = "longitude"
 )
 
-func CreateReader(path string) ZilchEntryReader {
+// CreateReader creates a ZipEntryReader.
+func CreateReader(path string) ZipEntryReader {
 	r := regexp.MustCompile("\\/[a-z]{2}_")
 	cc := r.FindString(path)
 	cc = cc[1:3]
 
-	return ZilchEntryReader{
+	return ZipEntryReader{
 		Path:        path,
 		CountryCode: strings.ToUpper(cc),
 	}
 }
 
-type ZilchEntryReader struct {
+// ZipEntryReader a reader used to read zip entries out of a CSV file.
+type ZipEntryReader struct {
 	Path        string
 	CountryCode string
 }
 
-func (r ZilchEntryReader) Read(ch chan ZilchEntry) {
+func (r ZipEntryReader) Read(ch chan ZipEntry) {
 	file, err := os.Open(r.Path)
 	defer file.Close()
 
@@ -99,10 +101,10 @@ func (r ZilchEntryReader) Read(ch chan ZilchEntry) {
 					columns[col] = i
 				}
 			} else {
-				if decom, decomFound := columns[DECOMISSIONED_COL]; !decomFound || (decomFound && record[decom] != "1") {
+				if decom, decomFound := columns[decommissionedCol]; !decomFound || (decomFound && record[decom] != "1") {
 					// not decomissioned
-					latitude := getFloatVal(record, LATITUDE_COL)
-					longitude := getFloatVal(record, LONGITUDE_COL)
+					latitude := getFloatVal(record, latitudeCol)
+					longitude := getFloatVal(record, longitudeCol)
 
 					if latitude < -90 || latitude > 90 {
 						latitude = 0
@@ -111,11 +113,11 @@ func (r ZilchEntryReader) Read(ch chan ZilchEntry) {
 						longitude = 0
 					}
 
-					acceptableCities := getSliceVal(record, ACCEPTABLE_CITIES_COL)
-					unacceptableCities := getSliceVal(record, UNACCEPTABLE_CITIES_COL)
-					areaCodes := getSliceVal(record, AREA_CODES_COL)
+					acceptableCities := getSliceVal(record, acceptableCitiesCol)
+					unacceptableCities := getSliceVal(record, unacceptableCitiesCol)
+					areaCodes := getSliceVal(record, areaCodesCol)
 
-					city := getVal(record, CITY_COL, "")
+					city := getVal(record, cityCol, "")
 					if strings.Index(city, " (") != -1 {
 						city = strings.Replace(city, " (", ", ", -1)
 						city = strings.Replace(city, ")", "", -1)
@@ -129,18 +131,18 @@ func (r ZilchEntryReader) Read(ch chan ZilchEntry) {
 						acceptableCities = cityList[1:]
 					}
 
-					ch <- ZilchEntry{
-						ZipCode:            getVal(record, ZIP_CODE_COL, ""),
-						Type:               getVal(record, TYPE_COL, "STANDARD"),
+					ch <- ZipEntry{
+						ZipCode:            getVal(record, zipCodeCol, ""),
+						Type:               getVal(record, typeCol, "STANDARD"),
 						City:               city,
 						AcceptableCities:   acceptableCities,
 						UnacceptableCities: unacceptableCities,
-						County:             getVal(record, COUNTY_COL, ""),
-						State:              getVal(record, STATE_COL, ""),
-						StateName:          getVal(record, STATE_NAME_COL, ""),
-						Country:            getVal(record, COUNTRY_COL, r.CountryCode),
-						CountryName:        getVal(record, COUNTRY_NAME_COL, ""),
-						TimeZone:           getVal(record, TIMEZONE_COL, ""),
+						County:             getVal(record, countyCol, ""),
+						State:              getVal(record, stateCol, ""),
+						StateName:          getVal(record, stateNameCol, ""),
+						Country:            getVal(record, countryCol, r.CountryCode),
+						CountryName:        getVal(record, countryNameCol, ""),
+						TimeZone:           getVal(record, timezoneCol, ""),
 						AreaCodes:          areaCodes,
 						Latitude:           latitude,
 						Longitude:          longitude,

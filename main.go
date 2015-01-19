@@ -4,16 +4,17 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/rchargel/zilch/zilch"
 	"io"
 	"os"
 	"runtime"
 	"strings"
+
+	"github.com/rchargel/zilch/zilch"
 )
 
-type ConsoleWriter struct{}
+type consoleWriter struct{}
 
-func (w ConsoleWriter) Write(p []byte) (n int, err error) {
+func (w consoleWriter) Write(p []byte) (n int, err error) {
 	fmt.Print(string(p))
 	return len(p), nil
 }
@@ -55,7 +56,7 @@ func main() {
 		}
 
 		var writer io.Writer
-		writer = ConsoleWriter{}
+		writer = consoleWriter{}
 		if len(outputFile) > 0 {
 			file, err := os.Create(outputFile)
 			defer file.Close()
@@ -63,7 +64,7 @@ func main() {
 				writer = file
 			}
 		}
-		resolver := zilch.Resolver{strings.ToLower(country), appKey, zipCodes}
+		resolver := zilch.Resolver{CountryCode: strings.ToLower(country), AppKey: appKey, ZipCodes: zipCodes}
 		resolver.OutputCSV(writer)
 	}
 }

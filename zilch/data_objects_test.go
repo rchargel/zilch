@@ -6,13 +6,13 @@ import (
 )
 
 func Test_Sort(t *testing.T) {
-	entries := make([]ZilchEntry, 3)
+	entries := make([]ZipEntry, 3)
 
-	entries[0] = ZilchEntry{ZipCode: "90210", City: "Beverly Hills", Country: "US", State: "CA"}
-	entries[1] = ZilchEntry{ZipCode: "19103", City: "Philadelphia", Country: "US", State: "PA"}
-	entries[2] = ZilchEntry{ZipCode: "12345", City: "Schenectady", Country: "US", State: "NY"}
+	entries[0] = ZipEntry{ZipCode: "90210", City: "Beverly Hills", Country: "US", State: "CA"}
+	entries[1] = ZipEntry{ZipCode: "19103", City: "Philadelphia", Country: "US", State: "PA"}
+	entries[2] = ZipEntry{ZipCode: "12345", City: "Schenectady", Country: "US", State: "NY"}
 
-	sort.Sort(ZilchSorter(entries))
+	sort.Sort(ZipSorter(entries))
 
 	if entries[0].ZipCode != "12345" {
 		t.Errorf("Sort failed, was %v, should have been 12345", entries[0].ZipCode)
@@ -28,7 +28,7 @@ func Test_Sort(t *testing.T) {
 func Test_GetKey(t *testing.T) {
 
 	testNumbers := func(lat, lon float32, expected uint32) {
-		entry := ZilchEntry{
+		entry := ZipEntry{
 			Latitude:  lat,
 			Longitude: lon,
 		}
@@ -56,7 +56,7 @@ func Test_GetKey(t *testing.T) {
 
 func Test_GetLatitudeAndLongitudeFromKey(t *testing.T) {
 	testNumbers := func(expectedLat, expectedLon int16, key uint32) {
-		lat, lon := GetLatitudeLongitudeFromKey(key)
+		lat, lon := getLatitudeLongitudeFromKey(key)
 
 		if lat != expectedLat || lon != expectedLon {
 			t.Errorf("The key %v produced lat: %v / long: %v, but should have been lat: %v / long: %v\n", key, lat, lon, expectedLat, expectedLon)

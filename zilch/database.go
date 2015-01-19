@@ -12,14 +12,16 @@ import (
 )
 
 const (
-	max_entries int = 200
+	maxEntries int = 200
 )
 
+// CountryIndex tracks the country to the list of ZipEntry objects.
 type CountryIndex struct {
 	CountryCode string
-	Entries     []ZilchEntry
+	Entries     []ZipEntry
 }
 
+// Database is a representation of the actual database of zip codes.
 type Database struct {
 	CountryIndexMap map[string]CountryIndex
 	DistributionMap map[uint32]DistributionEntry
@@ -27,6 +29,7 @@ type Database struct {
 	FullyLoaded     bool
 }
 
+// NewDatabase creates a database from the file directory.
 func NewDatabase(filedir string) (*Database, error) {
 	start := time.Now()
 	d := &Database{
@@ -36,7 +39,7 @@ func NewDatabase(filedir string) (*Database, error) {
 		FullyLoaded:     false,
 	}
 
-	channelMap := make(map[string]chan ZilchEntry)
+	channelMap := make(map[string]chan ZipEntry)
 
 	// start reading data
 	files, err := ioutil.ReadDir(filedir)
@@ -55,11 +58,11 @@ func NewDatabase(filedir string) (*Database, error) {
 			filepath = filedir + file.Name()
 		}
 		reader := CreateReader(filepath)
-		readerChan := make(chan ZilchEntry, 20)
+		readerChan := make(chan ZipEntry, 20)
 		channelMap[reader.CountryCode] = readerChan
 		go reader.Read(readerChan)
 		go d.loadCountryData(reader.CountryCode, readerChan, distributionChannel)
-		channels += 1
+		channels++
 	}
 
 	go d.finishDistributionChannels(distributionChannel, channels, start)
@@ -67,30 +70,30 @@ func NewDatabase(filedir string) (*Database, error) {
 	return d, nil
 }
 
-func (d *Database) loadCountryData(countryCode string, channel chan ZilchEntry, distChannel chan map[uint32]int) {
-	entries := make([]ZilchEntry, 0, 1000)
+func (d *Database) loadCountryData(countryCode string, channel chan ZipEntry, distChannel chan map[uint32]int) {
+	entries := make([]ZipEntry, 0, 1000)
 	distMap := make(map[uint32]int)
 
-	type state_data struct {
+	type stateData struct {
 		State     string
 		StateName string
 		ZipCodes  int
 	}
-	type country_data struct {
+	type countryData struct {
 		Country     string
 		CountryName string
-		States      map[string]state_data
+		States      map[string]stateData
 	}
 
-	country := country_data{
+	country := countryData{
 		Country:     countryCode,
 		CountryName: "",
-		States:      make(map[string]state_data),
+		States:      make(map[string]stateData),
 	}
 
 	for entry := range channel {
 		entries = append(entries, entry)
-		distMap[entry.GetKey()] += 1
+		distMap[entry.GetKey()]++
 
 		if len(country.CountryName) == 0 {
 			country.CountryName = entry.CountryName
@@ -98,13 +101,13 @@ func (d *Database) loadCountryData(countryCode string, channel chan ZilchEntry, 
 
 		if len(entry.State) > 0 {
 			if state, found := country.States[entry.State]; found {
-				country.States[entry.State] = state_data{
+				country.States[entry.State] = stateData{
 					State:     state.State,
 					StateName: state.StateName,
 					ZipCodes:  state.ZipCodes + 1,
 				}
 			} else {
-				country.States[entry.State] = state_data{
+				country.States[entry.State] = stateData{
 					State:     entry.State,
 					StateName: entry.StateName,
 					ZipCodes:  1,
@@ -139,6 +142,8 @@ func (d *Database) loadCountryData(countryCode string, channel chan ZilchEntry, 
 	distChannel <- distMap
 }
 
+// IsFullyLoaded determines whether the database has finished being
+// initialized out of the filesystem.
 func (d *Database) IsFullyLoaded() bool {
 	return d.FullyLoaded
 }
@@ -147,12 +152,12 @@ func (d *Database) finishDistributionChannels(distChannel chan map[uint32]int, t
 	channels := 0
 
 	for distMap := range distChannel {
-		channels += 1
+		channels++
 
 		for key, total := range distMap {
 			// key == 180090 = where equater meets prime meridian, not a real place
 			if key != 180090 {
-				lat, lon := GetLatitudeLongitudeFromKey(key)
+				lat, lon := getLatitudeLongitudeFromKey(key)
 				if _, found := d.DistributionMap[key]; !found {
 					d.DistributionMap[key] = DistributionEntry{
 						Latitude:  lat,
@@ -184,24 +189,26 @@ func (d *Database) finishDistributionChannels(distChannel chan map[uint32]int, t
 	fmt.Printf("Finished reading database in %s.\n", ellapsedTime)
 }
 
+// GetDistributions gets the list of DistributionEntry objects.
 func (d *Database) GetDistributions() []DistributionEntry {
 	entries := make([]DistributionEntry, len(d.DistributionMap))
 	idx := 0
 
 	for _, entry := range d.DistributionMap {
 		entries[idx] = entry
-		idx += 1
+		idx++
 	}
 
 	sort.Sort(DistributionSorter(entries))
 	return entries
 }
 
+// ExecQuery executes a query against the database.
 func (d *Database) ExecQuery(queryParams map[string]string) (QueryResult, error) {
 	if len(queryParams) == 0 {
 		return QueryResult{}, errors.New("There are no query parameters")
 	}
-	var entries []ZilchEntry
+	var entries []ZipEntry
 	var err error
 	if country, found := queryParams["Country"]; found {
 		entries, err = d.querySingleCountry(country, queryParams)
@@ -215,22 +222,22 @@ func (d *Database) ExecQuery(queryParams map[string]string) (QueryResult, error)
 	total := len(entries)
 	start := 0
 	end := len(entries)
-	sort.Sort(ZilchSorter(entries))
-	if total > max_entries {
+	sort.Sort(ZipSorter(entries))
+	if total > maxEntries {
 		start = 0
-		end = max_entries
-		if page, page_found := queryParams["page"]; page_found {
-			if p, perr := strconv.ParseUint(page, 10, 32); perr != nil {
+		end = maxEntries
+		if page, pageFound := queryParams["page"]; pageFound {
+			p, perr := strconv.ParseUint(page, 10, 32)
+			if perr != nil {
 				return QueryResult{}, perr
-			} else {
-				start = (int(p) - 1) * max_entries
-				end = start + max_entries
-				if start >= total {
-					start = total
-				}
-				if end >= total {
-					end = total
-				}
+			}
+			start = (int(p) - 1) * maxEntries
+			end = start + maxEntries
+			if start >= total {
+				start = total
+			}
+			if end >= total {
+				end = total
 			}
 		}
 		entries = entries[start:end]
@@ -244,31 +251,30 @@ func (d *Database) ExecQuery(queryParams map[string]string) (QueryResult, error)
 	}, nil
 }
 
-func (d *Database) querySingleCountry(country string, queryParams map[string]string) ([]ZilchEntry, error) {
-	entries := make([]ZilchEntry, 0, 20)
+func (d *Database) querySingleCountry(country string, queryParams map[string]string) ([]ZipEntry, error) {
+	entries := make([]ZipEntry, 0, 20)
 	if countryIndex, found := d.CountryIndexMap[country]; found {
-		ch := make(chan ZilchEntry)
+		ch := make(chan ZipEntry)
 		go countryIndex.QueryIndex(queryParams, ch)
 		for entry := range ch {
 			entries = append(entries, entry)
 		}
 		return entries, nil
-	} else {
-		return entries, errors.New(fmt.Sprintf("No country %s found", country))
 	}
+	return entries, fmt.Errorf("No country %s found", country)
 }
 
-func (d *Database) queryAllCountries(queryParams map[string]string) ([]ZilchEntry, error) {
-	entries := make([]ZilchEntry, 0, 40)
+func (d *Database) queryAllCountries(queryParams map[string]string) ([]ZipEntry, error) {
+	entries := make([]ZipEntry, 0, 40)
 	totalCountries := len(d.CountryIndexMap)
 	completed := 0
-	ch := make(chan ZilchEntry)
+	ch := make(chan ZipEntry)
 	for _, countryIndex := range d.CountryIndexMap {
-		go countryIndex.QueryIndexNoClose(queryParams, ch)
+		go countryIndex.queryIndexNoClose(queryParams, ch)
 	}
 	for entry := range ch {
 		if entry.Type == "EOL" {
-			completed += 1
+			completed++
 			if completed >= totalCountries {
 				break
 			}
@@ -279,42 +285,40 @@ func (d *Database) queryAllCountries(queryParams map[string]string) ([]ZilchEntr
 	return entries, nil
 }
 
-func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEntry) {
+// QueryIndex executes a query against the CountryIndex.
+func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZipEntry) {
 	nonalphanum := regexp.MustCompile("[^0-9A-Za-z]")
-	string_data := func(paramName string, params map[string]string) (string, bool) {
+	stringData := func(paramName string, params map[string]string) (string, bool) {
 		if value, valExists := params[paramName]; valExists {
 			return strings.ToLower(value), true
-		} else {
-			return "", false
 		}
+		return "", false
 	}
-	bounds_data := func(params map[string]string) ([]float32, bool) {
+	boundsData := func(params map[string]string) ([]float32, bool) {
 		b := make([]float32, 4)
 		if val, valExists := params["Bounds"]; valExists {
 			ba := strings.Split(val, ",")
 			if len(ba) != 4 {
 				return b, false
-			} else {
-				for i, bastring := range ba {
-					if f, err := strconv.ParseFloat(bastring, 32); err == nil {
-						b[i] = float32(f)
-					} else {
-						return b, false
-					}
-				}
-				return b, true
 			}
-		} else {
-			return b, false
+			for i, bastring := range ba {
+				if f, err := strconv.ParseFloat(bastring, 32); err == nil {
+					b[i] = float32(f)
+				} else {
+					return b, false
+				}
+			}
+			return b, true
 		}
+		return b, false
 	}
-	starts_with := func(expected, actual string) bool {
+	startsWith := func(expected, actual string) bool {
 		return strings.Index(actual, expected) == 0
 	}
 	contains := func(expected, actual string) bool {
 		return strings.Index(actual, expected) != -1
 	}
-	in_array := func(expected string, actual []string) bool {
+	inArray := func(expected string, actual []string) bool {
 		for _, val := range actual {
 			if strings.Index(strings.ToLower(val), expected) != -1 {
 				return true
@@ -322,7 +326,7 @@ func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEnt
 		}
 		return false
 	}
-	in_bounds := func(bounds []float32, latitude, longitude float32) bool {
+	inBounds := func(bounds []float32, latitude, longitude float32) bool {
 		if latitude == 0 && longitude == 0 {
 			return false
 		}
@@ -334,26 +338,26 @@ func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEnt
 		}
 		return true
 	}
-	bounds, boundsTest := bounds_data(queryParams)
-	zipCode, zipCodeTest := string_data("ZipCode", queryParams)
-	city, cityTest := string_data("City", queryParams)
-	areaCode, areaCodeTest := string_data("AreaCode", queryParams)
-	state, stateTest := string_data("State", queryParams)
-	county, countyTest := string_data("County", queryParams)
+	bounds, boundsTest := boundsData(queryParams)
+	zipCode, zipCodeTest := stringData("ZipCode", queryParams)
+	city, cityTest := stringData("City", queryParams)
+	areaCode, areaCodeTest := stringData("AreaCode", queryParams)
+	state, stateTest := stringData("State", queryParams)
+	county, countyTest := stringData("County", queryParams)
 
 	for _, entry := range c.Entries {
 		if zipCodeTest {
-			if !starts_with(nonalphanum.ReplaceAllString(zipCode, ""), strings.ToLower(nonalphanum.ReplaceAllString(entry.ZipCode, ""))) {
+			if !startsWith(nonalphanum.ReplaceAllString(zipCode, ""), strings.ToLower(nonalphanum.ReplaceAllString(entry.ZipCode, ""))) {
 				continue
 			}
 		}
 		if cityTest {
 			if !contains(city, strings.ToLower(entry.City)) {
 				valid := false
-				if len(entry.AcceptableCities) > 0 && in_array(city, entry.AcceptableCities) {
+				if len(entry.AcceptableCities) > 0 && inArray(city, entry.AcceptableCities) {
 					valid = true
 				}
-				if len(entry.UnacceptableCities) > 0 && in_array(city, entry.UnacceptableCities) {
+				if len(entry.UnacceptableCities) > 0 && inArray(city, entry.UnacceptableCities) {
 					valid = true
 				}
 				if !valid {
@@ -362,7 +366,7 @@ func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEnt
 			}
 		}
 		if areaCodeTest {
-			if !in_array(areaCode, entry.AreaCodes) {
+			if !inArray(areaCode, entry.AreaCodes) {
 				continue
 			}
 		}
@@ -379,7 +383,7 @@ func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEnt
 			}
 		}
 		if boundsTest {
-			if !in_bounds(bounds, entry.Latitude, entry.Longitude) {
+			if !inBounds(bounds, entry.Latitude, entry.Longitude) {
 				continue
 			}
 		}
@@ -388,11 +392,11 @@ func (c CountryIndex) QueryIndex(queryParams map[string]string, ch chan ZilchEnt
 	close(ch)
 }
 
-func (c CountryIndex) QueryIndexNoClose(queryParams map[string]string, ch chan ZilchEntry) {
-	ch2 := make(chan ZilchEntry)
+func (c CountryIndex) queryIndexNoClose(queryParams map[string]string, ch chan ZipEntry) {
+	ch2 := make(chan ZipEntry)
 	go c.QueryIndex(queryParams, ch2)
 	for entry := range ch2 {
 		ch <- entry
 	}
-	ch <- ZilchEntry{Type: "EOL"}
+	ch <- ZipEntry{Type: "EOL"}
 }

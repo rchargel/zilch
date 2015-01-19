@@ -2,8 +2,6 @@ package zilch
 
 import (
 	"errors"
-	"github.com/hoisie/web"
-	"github.com/nfnt/resize"
 	"image"
 	"image/color"
 	"image/draw"
@@ -13,16 +11,21 @@ import (
 	"os"
 	"sort"
 	"strconv"
+
+	"github.com/hoisie/web"
+	"github.com/nfnt/resize"
 )
 
+// PngController is the controller used to create PNG images.
 type PngController struct {
 	database *Database
 }
 
+// RenderDistributionImage renders the distribution image for the globe.
 func (c PngController) RenderDistributionImage(ctx *web.Context, scale string) {
-	int_scale := c.convertScale(scale)
+	intScale := c.convertScale(scale)
 
-	if img, err := c.getBackgroundImage(int_scale); err != nil {
+	if img, err := c.getBackgroundImage(intScale); err != nil {
 		rw := ResponseWriter{ctx, "JSON"}
 		rw.SendError(err)
 	} else {
@@ -30,7 +33,7 @@ func (c PngController) RenderDistributionImage(ctx *web.Context, scale string) {
 		sort.Sort(DistributionSorter(distributions))
 
 		for _, dist := range distributions {
-			c.drawDistribution(img, float32(dist.Latitude), float32(dist.Longitude), float32(int_scale)/float32(2), int(dist.ZipCodes))
+			c.drawDistribution(img, float32(dist.Latitude), float32(dist.Longitude), float32(intScale)/float32(2), int(dist.ZipCodes))
 		}
 
 		ctx.ContentType("image/png")
@@ -38,10 +41,11 @@ func (c PngController) RenderDistributionImage(ctx *web.Context, scale string) {
 	}
 }
 
+// RenderImage renders the simple distribution image.
 func (c PngController) RenderImage(ctx *web.Context, scale string) {
-	int_scale := c.convertScale(scale)
+	intScale := c.convertScale(scale)
 
-	img, err := c.getBackgroundImage(int_scale)
+	img, err := c.getBackgroundImage(intScale)
 	if err != nil {
 		rw := ResponseWriter{ctx, "JSON"}
 		rw.SendError(err)
@@ -50,7 +54,7 @@ func (c PngController) RenderImage(ctx *web.Context, scale string) {
 
 	for _, cim := range c.database.CountryIndexMap {
 		for _, entry := range cim.Entries {
-			c.drawPoint(img, entry.Latitude, entry.Longitude, float32(int_scale)/float32(2))
+			c.drawPoint(img, entry.Latitude, entry.Longitude, float32(intScale)/float32(2))
 		}
 	}
 	ctx.ContentType("image/png")
@@ -93,8 +97,8 @@ func (c PngController) drawDistribution(img *image.RGBA, lat, lng, scale float32
 }
 
 func (c PngController) convertScale(scale string) int {
-	int64_scale, _ := strconv.ParseInt(scale, 10, 32)
-	return int(int64_scale)
+	int64Scale, _ := strconv.ParseInt(scale, 10, 32)
+	return int(int64Scale)
 }
 
 func (c PngController) getBackgroundImage(scale int) (*image.RGBA, error) {

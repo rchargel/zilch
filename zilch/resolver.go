@@ -13,67 +13,69 @@ import (
 )
 
 const (
-	QUERY_URL     string = "https://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=%s&address=%s%s"
-	EXCEEDS_LIMIT string = "OVER_QUERY_LIMIT"
-	ZIP_TYPE      string = "postal_code"
-	CITY_TYPE     string = "locality"
-	COUNTY_TYPE   string = "sublocality_level_1"
-	STATE_TYPE    string = "administrative_area_level_1"
-	COUNTRY_TYPE  string = "country"
+	queryURL     string = "https://maps.googleapis.com/maps/api/geocode/json?sensor=false&region=%s&address=%s%s"
+	exceedsLimit string = "OVER_QUERY_LIMIT"
+	zipType      string = "postal_code"
+	cityType     string = "locality"
+	countyType   string = "sublocality_level_1"
+	stateType    string = "administrative_area_level_1"
+	countryType  string = "country"
 )
 
-type Location struct {
+type location struct {
 	Lat float32
 	Lng float32
 }
 
-type Geometry struct {
-	Location      Location
-	Location_Type string
+type geometry struct {
+	Location     location
+	LocationType string
 }
 
-type AddressComponent struct {
-	Long_Name  string
-	Short_Name string
-	Types      []string
+type addressComponent struct {
+	LongName  string
+	ShortName string
+	Types     []string
 }
 
-type Result struct {
-	Address_Components []AddressComponent
-	Formatted_Address  string
-	Geometry           Geometry
-	Types              []string
+type result struct {
+	AddressComponents []addressComponent
+	FormattedAddress  string
+	Geometry          geometry
+	Types             []string
 }
 
-type GResults struct {
-	Results []Result
+type gresults struct {
+	Results []result
 	Status  string
 }
 
-func (r Result) FindAddressComponent(compType string) (AddressComponent, error) {
-	for _, component := range r.Address_Components {
+func (r result) findAddressComponent(compType string) (addressComponent, error) {
+	for _, component := range r.AddressComponents {
 		for _, ctype := range component.Types {
 			if ctype == compType {
 				return component, nil
 			}
 		}
 	}
-	return AddressComponent{}, errors.New("No address component for type: " + compType)
+	return addressComponent{}, errors.New("No address component for type: " + compType)
 }
 
+// Resolver is used to gather zip code data from the Google Maps API.
 type Resolver struct {
 	CountryCode string
 	AppKey      string
 	ZipCodes    []string
 }
 
-func (r Resolver) FindResultList(resultChan chan GResults) {
+// FindResultList pipes a set of results to a channel.
+func (r Resolver) FindResultList(resultChan chan gresults) {
 	for _, zipCode := range r.ZipCodes {
 		var addr string
 		if len(r.AppKey) == 0 {
-			addr = fmt.Sprintf(QUERY_URL, strings.ToLower(r.CountryCode), zipCode, "")
+			addr = fmt.Sprintf(queryURL, strings.ToLower(r.CountryCode), zipCode, "")
 		} else {
-			addr = fmt.Sprintf(QUERY_URL, strings.ToLower(r.CountryCode), zipCode, "&key="+r.AppKey)
+			addr = fmt.Sprintf(queryURL, strings.ToLower(r.CountryCode), zipCode, "&key="+r.AppKey)
 		}
 		if results, err := r.getResults(addr, 1); err == nil {
 			resultChan <- results
@@ -87,9 +89,10 @@ func (r Resolver) FindResultList(resultChan chan GResults) {
 	close(resultChan)
 }
 
+// OutputCSV creates a CSV file that can later be imported by the Database.
 func (r Resolver) OutputCSV(writer io.Writer) {
 	start := time.Now()
-	rchan := make(chan GResults)
+	rchan := make(chan gresults)
 	w := bufio.NewWriter(writer)
 
 	r.outputHeader(w)
@@ -103,38 +106,37 @@ func (r Resolver) OutputCSV(writer io.Writer) {
 	w.Flush()
 }
 
-func (r Resolver) getResults(addr string, attempt int) (GResults, error) {
-	var results GResults
+func (r Resolver) getResults(addr string, attempt int) (gresults, error) {
+	var results gresults
 	if attempt > 3 {
 		return results, errors.New("Reached maximum number of attempts for: " + addr)
 	}
-	if resp, err := http.Get(addr); err != nil {
+	resp, err := http.Get(addr)
+	if err != nil {
 		return results, err
-	} else {
-		content, err := ioutil.ReadAll(resp.Body)
-		resp.Body.Close()
-		if err != nil {
+	}
+	content, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return results, err
+	}
+	dec := json.NewDecoder(strings.NewReader(string(content)))
+	for {
+		if err := dec.Decode(&results); err == io.EOF {
+			return results, nil
+		} else if err != nil {
 			return results, err
 		} else {
-			dec := json.NewDecoder(strings.NewReader(string(content)))
-			for {
-				if err := dec.Decode(&results); err == io.EOF {
-					return results, nil
-				} else if err != nil {
-					return results, err
-				} else {
-					if len(results.Results) == 1 {
-						return results, nil
-					} else if len(results.Results) == 0 {
-						if results.Status == EXCEEDS_LIMIT {
-							return results, errors.New("Exceeds the maximum daily query limit")
-						}
-						time.Sleep(1000 * time.Millisecond)
-						return r.getResults(addr, attempt+1)
-					} else {
-						return results, errors.New(fmt.Sprintf("Too many results returned: %v", len(results.Results)))
-					}
+			if len(results.Results) == 1 {
+				return results, nil
+			} else if len(results.Results) == 0 {
+				if results.Status == exceedsLimit {
+					return results, errors.New("Exceeds the maximum daily query limit")
 				}
+				time.Sleep(1000 * time.Millisecond)
+				return r.getResults(addr, attempt+1)
+			} else {
+				return results, fmt.Errorf("To many results returned: %v", len(results.Results))
 			}
 		}
 	}
@@ -145,29 +147,29 @@ func (r Resolver) outputHeader(w *bufio.Writer) {
 	w.Flush()
 }
 
-func (r Resolver) outputResults(w *bufio.Writer, results GResults) {
+func (r Resolver) outputResults(w *bufio.Writer, results gresults) {
 	var zip, city, state, stateName, county, country, countryName string
 	var latitude, longitude float32
 
-	var comp AddressComponent
+	var comp addressComponent
 	var err error
 	for _, res := range results.Results {
-		if comp, err = res.FindAddressComponent(ZIP_TYPE); err == nil {
-			zip = comp.Long_Name
+		if comp, err = res.findAddressComponent(zipType); err == nil {
+			zip = comp.LongName
 		}
-		if comp, err = res.FindAddressComponent(CITY_TYPE); err == nil {
-			city = comp.Long_Name
+		if comp, err = res.findAddressComponent(cityType); err == nil {
+			city = comp.LongName
 		}
-		if comp, err = res.FindAddressComponent(COUNTY_TYPE); err == nil {
-			county = comp.Long_Name
+		if comp, err = res.findAddressComponent(countyType); err == nil {
+			county = comp.LongName
 		}
-		if comp, err = res.FindAddressComponent(STATE_TYPE); err == nil {
-			state = strings.ToUpper(comp.Short_Name)
-			stateName = comp.Long_Name
+		if comp, err = res.findAddressComponent(stateType); err == nil {
+			state = strings.ToUpper(comp.ShortName)
+			stateName = comp.LongName
 		}
-		if comp, err = res.FindAddressComponent(COUNTRY_TYPE); err == nil {
-			country = strings.ToUpper(comp.Short_Name)
-			countryName = comp.Long_Name
+		if comp, err = res.findAddressComponent(countryType); err == nil {
+			country = strings.ToUpper(comp.ShortName)
+			countryName = comp.LongName
 		}
 		latitude = res.Geometry.Location.Lat
 		longitude = res.Geometry.Location.Lng

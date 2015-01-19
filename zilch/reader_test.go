@@ -20,12 +20,12 @@ func Test_Read(t *testing.T) {
 	path := "../resources/ca_zip_code_database.csv"
 	reader := CreateReader(path)
 
-	ch := make(chan ZilchEntry, 100)
+	ch := make(chan ZipEntry, 100)
 	go reader.Read(ch)
 
 	count := 0
 	for entry := range ch {
-		count += 1
+		count++
 		if entry.Country != "CA" {
 			t.Errorf("Wrong country code: %s\n", entry.Country)
 		}

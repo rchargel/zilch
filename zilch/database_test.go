@@ -96,7 +96,7 @@ func Test_DatabaseLoad(t *testing.T) {
 			} else if queryResult.ResultsReturned != 128 {
 				t.Errorf("Not 147 entries: %v", queryResult.ResultsReturned)
 			} else {
-				entryMap := make(map[string]ZilchEntry)
+				entryMap := make(map[string]ZipEntry)
 				for _, entry := range queryResult.ZipCodeEntries {
 					if mpEntry, found := entryMap[entry.ZipCode]; found {
 						t.Errorf("Found duplicate\n%s\n%s\n", entry, mpEntry)
